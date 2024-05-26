@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "908015164698",
+    "project_id": "unialert-0",
+    "storage_bucket": "unialert-0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908015164698:android:839efa55490aaeeb97a0a3",
+        "android_client_info": {
+          "package_name": "com.example.notification_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMHN-eoTEQPw9bZcKhhSw2zCe0RsRpObk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
