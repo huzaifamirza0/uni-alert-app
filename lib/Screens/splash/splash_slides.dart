@@ -89,9 +89,9 @@ class _SliderWidgetState extends State<SliderWidget> {
               });
             },
             children: [
-              _buildPageContent('assets/splash/slide1.jpg', 'Welcome to HRMS', 'Lorem ipsum is a placeholder text commonly used to demonstrate the visual.'),
-              _buildPageContent('assets/splash/slide2.jpg', 'Easy Attendance System', 'Lorem ipsum is a placeholder text commonly used to demonstrate the visual.'),
-              _buildPageContent('assets/splash/slide3.jpg', 'Stay Connected', 'Lorem ipsum is a placeholder text commonly used to demonstrate the visual.'),
+              _buildPageContent('assets/splash/slide1.jpg', 'Welcome to UniAlert', 'Experience seamless communication and stay updated with the latest university announcements.'),
+              _buildPageContent('assets/splash/slide2.jpg', 'Personalized Notifications', 'Receive tailored notifications based on your interests and campus affiliations, ensuring you never miss important updates.'),
+              _buildPageContent('assets/splash/slide3.jpg', 'Stay Connected', 'Stay connected with your university community and stay informed about events, news, and important notices.')
             ],
           ),
           Positioned(

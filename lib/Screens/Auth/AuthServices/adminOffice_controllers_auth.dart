@@ -3,29 +3,46 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../MainNavBar/main_navbar.dart';
-
-class SignUpController extends GetxController {
+class AdminOfficeSignUpController extends GetxController {
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController officeNameController = TextEditingController();
+  final TextEditingController officeDescriptionController = TextEditingController();
 
   final RxBool obscurePassword = true.obs;
   final RxBool obscureConfirmPassword = true.obs;
   final RxBool isSignUpFormValid = false.obs;
 
+  final RxBool nameTouched = false.obs;
   final RxBool emailTouched = false.obs;
   final RxBool phoneTouched = false.obs;
   final RxBool passwordTouched = false.obs;
   final RxBool confirmPasswordTouched = false.obs;
+  final RxBool officeNameTouched = false.obs;
+  final RxBool officeDescriptionTouched = false.obs;
 
+  final RxString nameError = ''.obs;
   final RxString emailError = ''.obs;
   final RxString phoneError = ''.obs;
   final RxString passwordError = ''.obs;
   final RxString confirmPasswordError = ''.obs;
+  final RxString officeNameError = ''.obs;
+  final RxString officeDescriptionError = ''.obs;
 
   void validateForm() {
-      // Validate email
+    // Validate name if it has been touched
+    if (nameTouched.value) {
+      if (nameController.text.isEmpty) {
+        nameError.value = 'Please enter your name';
+      } else {
+        nameError.value = '';
+      }
+    }
+
+    // Validate email if it has been touched
     if (emailTouched.value) {
       if (EmailValidator.validate(emailController.text)) {
         emailError.value = '';
@@ -61,28 +78,55 @@ class SignUpController extends GetxController {
       }
     }
 
+    // Validate office name if it has been touched
+    if (officeNameTouched.value) {
+      if (officeNameController.text.isEmpty) {
+        officeNameError.value = 'Please enter the office name';
+      } else {
+        officeNameError.value = '';
+      }
+    }
+
+    // Validate office description if it has been touched
+    if (officeDescriptionTouched.value) {
+      if (officeDescriptionController.text.isEmpty) {
+        officeDescriptionError.value = 'Please enter the office description';
+      } else {
+        officeDescriptionError.value = '';
+      }
+    }
+
     // Check if all fields are valid
-    isSignUpFormValid.value = emailTouched.value &&
+    isSignUpFormValid.value = nameTouched.value &&
+        emailTouched.value &&
         phoneTouched.value &&
         passwordTouched.value &&
         confirmPasswordTouched.value &&
+        officeNameTouched.value &&
+        officeDescriptionTouched.value &&
+        nameError.value.isEmpty &&
         emailError.value.isEmpty &&
         phoneError.value.isEmpty &&
         passwordError.value.isEmpty &&
-        confirmPasswordError.value.isEmpty;
-
+        confirmPasswordError.value.isEmpty &&
+        officeNameError.value.isEmpty &&
+        officeDescriptionError.value.isEmpty;
   }
 
   void signUp() {
     // Your sign-up logic here
     // For demonstration, we'll just print the values
+    print('Name: ${nameController.text}');
     print('Email: ${emailController.text}');
     print('Phone: ${phoneController.text}');
     print('Password: ${passwordController.text}');
+    print('Office Name: ${officeNameController.text}');
+    print('Office Description: ${officeDescriptionController.text}');
 
     if (isSignUpFormValid.value) {
+      // Add your sign-up logic here
       Get.back();
-      print('Sign-up successful!');
+      print('Admin Office Sign-up successful!');
     }
   }
 
@@ -92,6 +136,11 @@ class SignUpController extends GetxController {
 
   void toggleConfirmPasswordVisibility() {
     obscureConfirmPassword.toggle();
+  }
+
+  void setNameTouched(bool touched) {
+    nameTouched.value = touched;
+    validateForm();
   }
 
   void setEmailTouched(bool touched) {
@@ -111,6 +160,16 @@ class SignUpController extends GetxController {
 
   void setConfirmPasswordTouched(bool touched) {
     confirmPasswordTouched.value = touched;
+    validateForm();
+  }
+
+  void setOfficeNameTouched(bool touched) {
+    officeNameTouched.value = touched;
+    validateForm();
+  }
+
+  void setOfficeDescriptionTouched(bool touched) {
+    officeDescriptionTouched.value = touched;
     validateForm();
   }
 }

@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../Components/CustomButton.dart';
 import '../../../Components/text_fields.dart';
-import '../AuthServices/get_controllers_auth.dart';
+import '../AuthServices/adminOffice_controllers_auth.dart';
 
-class SignUpPage extends StatelessWidget {
-  final SignUpController signUpController = Get.put(SignUpController());
+class AdminOfficeSignUpScreen extends StatelessWidget {
+  final AdminOfficeSignUpController signUpController = Get.put(AdminOfficeSignUpController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign Up'),
+        title: const Text('Admin Office Sign Up'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -29,9 +29,9 @@ class SignUpPage extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 6,),
+              const SizedBox(height: 6),
               const Text(
-                'Employee Manage',
+                'Admin Office Management',
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.grey,
@@ -40,9 +40,21 @@ class SignUpPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Obx(() => CustomTextField(
+                controller: signUpController.nameController,
+                labelText: 'Name',
+                preIcon: const Icon(Icons.person, color: Colors.lightGreen,),
+                errorText: signUpController.nameTouched.value
+                    ? signUpController.nameError.value.isNotEmpty
+                    ? signUpController.nameError.value
+                    : null
+                    : null,
+                onChanged: (_) => signUpController.setNameTouched(true),
+              )),
+              const SizedBox(height: 12),
+              Obx(() => CustomTextField(
                 controller: signUpController.emailController,
                 labelText: 'Email',
-                preIcon: const Icon(Icons.person, color: Colors.lightGreen,),
+                preIcon: const Icon(Icons.email, color: Colors.lightGreen,),
                 errorText: signUpController.emailTouched.value
                     ? signUpController.emailError.value.isNotEmpty
                     ? signUpController.emailError.value
@@ -61,6 +73,30 @@ class SignUpPage extends StatelessWidget {
                     : null
                     : null,
                 onChanged: (_) => signUpController.setPhoneTouched(true),
+              )),
+              const SizedBox(height: 12),
+              Obx(() => CustomTextField(
+                controller: signUpController.officeNameController,
+                labelText: 'Office Name',
+                preIcon: const Icon(Icons.business, color: Colors.lightGreen,),
+                errorText: signUpController.officeNameTouched.value
+                    ? signUpController.officeNameError.value.isNotEmpty
+                    ? signUpController.officeNameError.value
+                    : null
+                    : null,
+                onChanged: (_) => signUpController.setOfficeNameTouched(true),
+              )),
+              const SizedBox(height: 12),
+              Obx(() => CustomTextField(
+                controller: signUpController.officeDescriptionController,
+                labelText: 'Office Description',
+                preIcon: const Icon(Icons.description, color: Colors.lightGreen,),
+                errorText: signUpController.officeDescriptionTouched.value
+                    ? signUpController.officeDescriptionError.value.isNotEmpty
+                    ? signUpController.officeDescriptionError.value
+                    : null
+                    : null,
+                onChanged: (_) => signUpController.setOfficeDescriptionTouched(true),
               )),
               const SizedBox(height: 12),
               Obx(() => CustomTextField(
@@ -90,6 +126,7 @@ class SignUpPage extends StatelessWidget {
                 onPressed: signUpController.toggleConfirmPasswordVisibility,
                 onChanged: (_) => signUpController.setConfirmPasswordTouched(true),
               )),
+
               const SizedBox(height: 24),
               Obx(() => SizedBox(
                 height: 50,

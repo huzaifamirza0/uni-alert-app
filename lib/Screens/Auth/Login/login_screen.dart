@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:notification_app/Screens/Auth/role_select.dart';
 import '../../../Components/CustomButton.dart';
 import '../../../Components/text_fields.dart';
-import '../AuthServices/get_controllers_auth.dart';
-import '../Signup/signup_screen.dart';
+import '../AuthServices/adminOffice_controllers_auth.dart';
+import '../Signup/adminOffice_signup.dart';
+import '../Signup/student_signup.dart';
 
 class SignInScreen extends StatelessWidget {
   final SignInController signInController = Get.put(SignInController());
@@ -26,7 +28,7 @@ class SignInScreen extends StatelessWidget {
               ),
               const SizedBox(height: 26,),
               const Text(
-                'Welcome to Employee App',
+                'Welcome to UniAlert',
                 style: TextStyle(
                   fontSize: 21, color: Colors.lightGreen,
                   fontWeight: FontWeight.bold,
@@ -90,7 +92,7 @@ class SignInScreen extends StatelessWidget {
                 children: [
                   const Text("Don't have any account?", style: TextStyle(fontWeight: FontWeight.bold),),
                   const SizedBox(width: 4,),
-                  GestureDetector(onTap: (){Get.to(SignUpPage());}, child: const Text('Sign Up',
+                  GestureDetector(onTap: (){Get.to(RoleSelectionScreen());}, child: const Text('Sign Up',
                     style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold, fontSize: 16),))
                 ],
               )
