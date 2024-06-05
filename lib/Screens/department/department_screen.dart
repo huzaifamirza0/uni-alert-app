@@ -21,26 +21,28 @@ class DepartmentScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Create Department'),
+          title: const Text('Create Department'),
           content: TextField(
             controller: departmentController,
-            decoration: InputDecoration(hintText: 'Enter department name'),
+            decoration: const InputDecoration(
+                hintText: 'Enter department name'),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Create'),
+              child: const Text('Create'),
               onPressed: () async {
                 if (departmentController.text.isNotEmpty) {
                   User? user = FirebaseAuth.instance.currentUser;
                   String departmentCode = Random().nextInt(999999).toString();
                   if (user != null) {
-                    await FirebaseFirestore.instance.collection('departments').add({
+                    await FirebaseFirestore.instance.collection('departments')
+                        .add({
                       'name': departmentController.text,
                       'hodId': user.uid,
                       'code': departmentCode,
@@ -64,20 +66,20 @@ class DepartmentScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Create Batch'),
+          title: const Text('Create Batch'),
           content: TextField(
             controller: batchController,
-            decoration: InputDecoration(hintText: 'Enter batch name'),
+            decoration: const InputDecoration(hintText: 'Enter batch name'),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Create'),
+              child: const Text('Create'),
               onPressed: () async {
                 if (batchController.text.isNotEmpty) {
                   await FirebaseFirestore.instance
@@ -98,7 +100,9 @@ class DepartmentScreen extends StatelessWidget {
       },
     );
   }
-  Future<void> _createSemester(BuildContext context, String departmentId) async {
+
+  Future<void> _createSemester(BuildContext context,
+      String departmentId) async {
     final TextEditingController semesterController = TextEditingController();
 
     return showDialog<void>(
@@ -149,14 +153,26 @@ class DepartmentScreen extends StatelessWidget {
         title: const Text('Department Management'),
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+        stream: FirebaseFirestore.instance.collection('users')
+            .doc(userId)
+            .snapshots(),
         builder: (context, userSnapshot) {
           if (!userSnapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          var userData = userSnapshot.data!.data() as Map<String, dynamic>;
+          if (userSnapshot.hasError) {
+            return const Center(child: Text('Error loading user data'));
+          }
+
+          var userData = userSnapshot.data?.data() as Map<String, dynamic>?;
+
+          if (userData == null) {
+            return const Center(child: Text('User data is null'));
+          }
+
           String role = userData['role'];
+
 
           if (role == 'hod') {
             return _buildHODView(context, userId);
@@ -172,7 +188,8 @@ class DepartmentScreen extends StatelessWidget {
 
   Widget _buildHODView(BuildContext context, String userId) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('departments').where('hodId', isEqualTo: userId).snapshots(),
+      stream: FirebaseFirestore.instance.collection('departments').where(
+          'hodId', isEqualTo: userId).snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Center(child: Text('Something went wrong'));
@@ -202,22 +219,25 @@ class DepartmentScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () => _createBatch(context, department.id),
-              child: const Text('Create Batchr'),
+              child: const Text('Create Batch'),
             ),
             StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('departments').doc(department.id).collection('batches').snapshots(),
+              stream: FirebaseFirestore.instance.collection('departments').doc(
+                  department.id).collection('batches').snapshots(),
               builder: (context, semesterSnapshot) {
                 if (semesterSnapshot.hasError) {
                   return const Center(child: Text('Something went wrong'));
                 }
-                if (semesterSnapshot.connectionState == ConnectionState.waiting) {
+                if (semesterSnapshot.connectionState ==
+                    ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 return ListView(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  children: semesterSnapshot.data!.docs.map((DocumentSnapshot document) {
+                  children: semesterSnapshot.data!.docs.map((
+                      DocumentSnapshot document) {
                     return ListTile(
                       title: Text(document['name']),
                     );
@@ -239,21 +259,48 @@ class DepartmentScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        var userData = userSnapshot.data!.data() as Map<String, dynamic>;
-        String departmentId = userData['departmentId'];
+        if (userSnapshot.hasError) {
+          return const Center(child: Text('Error loading user data'));
+        }
 
-        if (departmentId.isEmpty) {
+        var userData = userSnapshot.data?.data() as Map<String, dynamic>?;
+
+        if (userData == null) {
+          return const Center(child: Text('User data is null'));
+        }
+
+        String departmentCode = userData['departmentCode'];
+
+        if (departmentCode.isEmpty) {
           return const Center(child: Text('You are not part of any department.'));
         }
 
-        return StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance.collection('departments').doc(departmentId).snapshots(),
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('departments').where('code', isEqualTo: departmentCode).snapshots(),
           builder: (context, departmentSnapshot) {
             if (!departmentSnapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            var departmentData = departmentSnapshot.data!.data() as Map<String, dynamic>;
+            if (departmentSnapshot.hasError) {
+              return const Center(child: Text('Error loading department data'));
+            }
+
+            var departmentDocs = departmentSnapshot.data?.docs;
+
+            if (departmentDocs == null || departmentDocs.isEmpty) {
+              return const Center(child: Text('Department data is null or empty'));
+            }
+
+            var departmentData = departmentDocs.first.data() as Map<String, dynamic>;
+
+            String departmentId = departmentDocs.first.id;
+
+            if (departmentData == null) {
+              return const Center(child: Text('Department data is null'));
+            }
+
+            // Build your UI using departmentData here
 
             return ListView(
               padding: const EdgeInsets.all(16.0),
@@ -290,4 +337,5 @@ class DepartmentScreen extends StatelessWidget {
       },
     );
   }
+
 }

@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
+import 'package:notification_app/MainNavBar/main_navbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Services/notification_services.dart';
+import '../otp_verification_screen.dart';
 
 enum UserRole { student, hod, faculty, adminOffice }
 
@@ -33,9 +36,8 @@ class AuthService {
       NotificationServices notificationServices, {
         String? rollNo,
         String? contact,
-        String? department,
+        String? departmentCode,
         String? batch,
-        String? semester,
         String? description,
       }) async {
     try {
@@ -48,7 +50,12 @@ class AuthService {
       if (user != null) {
         String deviceToken = await notificationServices.getDeviceToken();
 
-        await _completeRegistration(
+        // Ensure OTPController is initialized
+        Get.put(OTPController());
+
+        // Send OTP to user's phone number
+        await _sendOTP(
+          contact!,
           user,
           role,
           name,
@@ -56,11 +63,11 @@ class AuthService {
           deviceToken,
           rollNo: rollNo,
           contact: contact,
-          department: department,
+          departmentCode: departmentCode,
           batch: batch,
-          semester: semester,
           description: description,
         );
+
         print('${role.toString().split('.').last} signed up');
         return user;
       } else {
@@ -73,7 +80,7 @@ class AuthService {
     return null;
   }
 
-  Future<void> _completeRegistration(
+  Future<void> completeRegistration(
       User user,
       UserRole role,
       String name,
@@ -81,9 +88,8 @@ class AuthService {
       String deviceToken, {
         String? rollNo,
         String? contact,
-        String? department,
+        String? departmentCode,
         String? batch,
-        String? semester,
         String? description,
       }) async {
     Map<String, dynamic> userData = {
@@ -91,48 +97,100 @@ class AuthService {
       'email': email,
       'deviceToken': deviceToken,
       'uid': user.uid,
+      'role': role.toString().split('.').last,
     };
+
+    userData.addAll({
+      'contact': contact,
+    });
 
     switch (role) {
       case UserRole.student:
         userData.addAll({
           'rollNo': rollNo,
-          'contact': contact,
-          'department': department,
+          'departmentCode': departmentCode,
           'batch': batch,
-          'semester': semester,
           'status': 'unavailable',
         });
-        await _firestore.collection('students').doc(user.uid).set(userData);
         break;
 
       case UserRole.hod:
         userData.addAll({
-          'department': department,
-          'contact': contact,
           'status': 'pending',
         });
-        await _firestore.collection('hods').doc(user.uid).set(userData);
         break;
 
       case UserRole.faculty:
         userData.addAll({
-          'department': department,
-          'contact': contact,
+          'departmentCode': departmentCode,
           'status': 'pending',
         });
-        await _firestore.collection('faculty').doc(user.uid).set(userData);
         break;
 
       case UserRole.adminOffice:
         userData.addAll({
-          'contact': contact,
           'status': 'active',
           'description': description,
         });
-        await _firestore.collection('adminOffices').doc(user.uid).set(userData);
         break;
     }
+
+    await _firestore.collection('users').doc(user.uid).set(userData);
+  }
+
+  Future<void> _sendOTP(
+      String phoneNumber,
+      User user,
+      UserRole role,
+      String name,
+      String email,
+      String deviceToken, {
+        String? rollNo,
+        String? contact,
+        String? departmentCode,
+        String? batch,
+        String? description,
+      }) async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // Auto-retrieval or instant verification
+        await user.linkWithCredential(credential);
+        await completeRegistration(
+          user,
+          role,
+          name,
+          email,
+          deviceToken,
+          rollNo: rollNo,
+          contact: contact,
+          departmentCode: departmentCode,
+          batch: batch,
+          description: description,
+        );
+        Get.offAll(() => NavBar());
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        Get.snackbar('Error', 'Failed to send OTP: ${e.message}');
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        // Navigate to OTP verification screen
+        Get.to(() => OTPVerificationScreen(
+          verificationId: verificationId,
+          user: user,
+          role: role,
+          name: name,
+          email: email,
+          deviceToken: deviceToken,
+          rollNo: rollNo,
+          contact: contact,
+          departmentCode: departmentCode,
+          batch: batch,
+          description: description,
+        ));
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {},
+    );
   }
 
   Future<User?> signIn(String email, String password) async {
@@ -145,26 +203,13 @@ class AuthService {
 
       if (user != null) {
         // Fetch user data from Firestore
-        DocumentSnapshot studentDoc = await _firestore.collection('students').doc(user.uid).get();
-        DocumentSnapshot hodDoc = await _firestore.collection('hods').doc(user.uid).get();
-        DocumentSnapshot facultyDoc = await _firestore.collection('faculty').doc(user.uid).get();
-        DocumentSnapshot adminOfficeDoc = await _firestore.collection('adminOffices').doc(user.uid).get();
+        DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
 
-        // Determine the role
-        if (studentDoc.exists) {
-          print('Student signed in');
-        } else if (hodDoc.exists) {
-          print('HOD signed in');
-        } else if (facultyDoc.exists) {
-          print('Faculty signed in');
-        } else if (adminOfficeDoc.exists) {
-          print('Admin Office signed in');
-        } else {
-          print('Unknown role');
+        if (userDoc.exists) {
+          print('${userDoc.data()} signed in');
+          await setLoggedIn(true);
+          return user;
         }
-
-        await setLoggedIn(true);
-        return user;
       }
     } catch (e) {
       print('Failed to sign in: $e');
@@ -184,4 +229,8 @@ class AuthService {
       print('Failed to subscribe: $e');
     }
   }
+}
+
+class OTPController extends GetxController {
+  String verificationId = '';
 }

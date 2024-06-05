@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../Components/CustomButton.dart';
+import 'Signup/adminOffice_signup.dart';
 import 'Signup/faculty_signup.dart';
 import 'Signup/hod_signup.dart';
 import 'Signup/student_signup.dart';
@@ -100,7 +101,7 @@ class RoleSelectionScreen extends StatelessWidget {
                         Get.to(() => HodSignUpScreen());
                         break;
                       case UserRole.adminOffice:
-                      // Get.to(() => AdminOfficeSignUpScreen());
+                        Get.to(() => AdminOfficeSignUpScreen());
                         break;
                     }
                   },

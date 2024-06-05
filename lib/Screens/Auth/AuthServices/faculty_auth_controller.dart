@@ -155,7 +155,7 @@ class FacultySignUpController extends GetxController {
         passwordController.text,
         notificationServices,
         contact: contactController.text,
-        department: departmentController.text,
+        departmentCode: departmentController.text,
       );
     }
   }

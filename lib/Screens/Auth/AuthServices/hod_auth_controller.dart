@@ -90,13 +90,11 @@ class HODSignUpController extends GetxController {
     isSignUpFormValid.value = nameTouched.value &&
         emailTouched.value &&
         contactTouched.value &&
-        departmentTouched.value &&
         passwordTouched.value &&
         confirmPasswordTouched.value &&
         nameError.value.isEmpty &&
         emailError.value.isEmpty &&
         contactError.value.isEmpty &&
-        departmentError.value.isEmpty &&
         passwordError.value.isEmpty &&
         confirmPasswordError.value.isEmpty;
   }
@@ -110,11 +108,10 @@ class HODSignUpController extends GetxController {
         passwordController.text,
         notificationServices,
         contact: contactController.text,
-        department: departmentController.text,
+        //departmentCode: departmentController.text,
       );
       if (user != null) {
         // Handle successful sign-up
-        Get.back();
         print('HOD sign-up successful!');
       } else {
         // Handle sign-up failure

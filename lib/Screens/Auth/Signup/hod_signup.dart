@@ -18,7 +18,7 @@ class HodSignUpScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Obx(() {
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CustomTextField(
                 controller: signUpController.nameController,
@@ -30,18 +30,6 @@ class HodSignUpScreen extends StatelessWidget {
                     : null
                     : null,
                 onChanged: (value) => signUpController.setNameTouched(true),
-              ),
-              const SizedBox(height: 12),
-              CustomTextField(
-                controller: signUpController.departmentController,
-                labelText: 'Department',
-                preIcon: const Icon(Icons.school, color: Colors.lightGreen,),
-                errorText: signUpController.departmentTouched.value
-                    ? signUpController.departmentError.value.isNotEmpty
-                    ? signUpController.departmentError.value
-                    : null
-                    : null,
-                onChanged: (value) => signUpController.setDepartmentTouched(true),
               ),
               const SizedBox(height: 12),
               CustomTextField(

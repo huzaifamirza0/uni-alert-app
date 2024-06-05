@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         primaryColor: Colors.green,
         useMaterial3: true,
       ),
-      home: isLoggedIn ? NavBar() : SliderWidget(),
+      home: isLoggedIn ? NavBar() : SliderWidget()
     );
   }
 }

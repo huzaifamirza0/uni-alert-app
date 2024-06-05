@@ -1,4 +1,3 @@
-import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,10 +39,20 @@ class StudentSignUpController extends GetxController {
   final RxString passwordError = ''.obs;
   final RxString confirmPasswordError = ''.obs;
 
+  bool isValidUonEmail(String email) {
+    final regex = RegExp(r'^\d{2}uon\d{4}@uon\.edu\.pk$');
+    return regex.hasMatch(email);
+  }
+
+  bool isValidRollNo(String rollNo) {
+    final regex = RegExp(r'^\d{2}-UON-\d{4}$');
+    return regex.hasMatch(rollNo);
+  }
+
   void validateForm() {
     // Validate name
     if (nameTouched.value) {
-      if (nameController.text.isNotEmpty) {
+      if (nameController.text.length > 2) {
         nameError.value = '';
       } else {
         nameError.value = 'Please enter your name';
@@ -52,19 +61,19 @@ class StudentSignUpController extends GetxController {
 
     // Validate roll number
     if (rollNoTouched.value) {
-      if (rollNoController.text.isNotEmpty) {
+      if (isValidRollNo(rollNoController.text)) {
         rollNoError.value = '';
       } else {
-        rollNoError.value = 'Please enter your roll number';
+        rollNoError.value = 'Please enter your valid roll number';
       }
     }
 
     // Validate email
     if (emailTouched.value) {
-      if (EmailValidator.validate(emailController.text)) {
+      if (isValidUonEmail(emailController.text)) {
         emailError.value = '';
       } else {
-        emailError.value = 'Please enter a valid email';
+        emailError.value = 'Please enter a valid email (e.g., 20uon0567@uon.edu.pk)';
       }
     }
 
@@ -153,12 +162,11 @@ class StudentSignUpController extends GetxController {
         notificationServices,
         rollNo: rollNoController.text,
         contact: contactController.text,
-        department: departmentController.text,
+        departmentCode: departmentController.text,
         batch: batchController.text,
-        semester: semesterController.text,
       );
       if (user != null) {
-        // Handle successful sign-up
+        Get.snackbar('Success','Created an account successfully', snackPosition: SnackPosition.BOTTOM);
         Get.back();
         print('Student sign-up successful!');
       } else {

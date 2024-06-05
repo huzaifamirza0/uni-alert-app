@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../model/user.dart';
+import '../profile body/profile_items.dart';
 import '../utils/user_preferences.dart';
 import '../widget/appbar_widget.dart';
 import '../widget/button_widget.dart';
@@ -75,6 +76,47 @@ class _ProfilePageState extends State<ProfilePage> {
                 //   },
                 //     child: LocationWidget(latitude: user.latitude, longitude: user.longitude)),
                 const SizedBox(height: 18),
+                Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.black45)
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      children: [
+                        ProfileItem('Personal Details', Icons.person,
+                            onTap: (){} ),
+                        ProfileItem('My Department', Icons.school,
+                            onTap: (){} ),
+                        // ProfileItem('My Favorites', Icons.favorite,
+                        //     onTap: (){Navigator.push(context, MaterialPageRoute(builder: (context) => FavoriteItemList()));
+                        // } ),
+                        // ProfileItem('Shipping Addresses', Icons.location_on),
+                        // ProfileItem('My Card', Icons.credit_card),
+                        ProfileItem('Settings', Icons.settings),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30,),
+                Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.black45)
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      children: [
+                        ProfileItem('FAQ', Icons.error),
+                        ProfileItem('Privacy Policy', Icons.security),
+                        ProfileItem('Terms & Conditon', Icons.description),
+
+                      ],
+                    ),
+                  ),
+                ),
                 buildAbout(user),
               ],
             ),

@@ -20,7 +20,7 @@ class StudentSignUpScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Obx(() {
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CustomTextField(
                 controller: signUpController.nameController,
