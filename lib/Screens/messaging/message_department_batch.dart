@@ -30,21 +30,21 @@ class SendMessageScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Send Message'),
+        title: const Text('Send Message'),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('departments').where('hodId', isEqualTo: user?.uid).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Something went wrong'));
+            return const Center(child: Text('Something went wrong'));
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.data?.docs.isEmpty ?? true) {
-            return Center(child: Text('No departments found'));
+            return const Center(child: Text('No departments found'));
           }
 
           var department = snapshot.data!.docs.first;
@@ -55,28 +55,28 @@ class SendMessageScreen extends StatelessWidget {
               children: [
                 TextField(
                   controller: titleController,
-                  decoration: InputDecoration(hintText: 'Enter title'),
+                  decoration: const InputDecoration(hintText: 'Enter title'),
                 ),
-                SizedBox(height: 8.0),
+                const SizedBox(height: 8.0),
                 TextField(
                   controller: messageController,
-                  decoration: InputDecoration(hintText: 'Enter message'),
+                  decoration: const InputDecoration(hintText: 'Enter message'),
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance.collection('departments').doc(department.id).collection('batches').snapshots(),
                   builder: (context, batchSnapshot) {
                     if (batchSnapshot.hasError) {
-                      return Center(child: Text('Something went wrong'));
+                      return const Center(child: Text('Something went wrong'));
                     }
 
                     if (batchSnapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator());
                     }
 
                     return DropdownButton<String>(
                       value: selectedBatchId,
-                      hint: Text('Select batch (optional)'),
+                      hint: const Text('Select batch (optional)'),
                       isExpanded: true,
                       items: batchSnapshot.data!.docs.map((DocumentSnapshot document) {
                         return DropdownMenuItem<String>(
@@ -90,16 +90,56 @@ class SendMessageScreen extends StatelessWidget {
                     );
                   },
                 ),
-                SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () => _sendMessage(context, department.id),
-                  child: Text('Send Message'),
+                  child: const Text('Send Message'),
                 ),
               ],
             ),
           );
         },
       ),
+    );
+  }
+  Future<void> _createSemester(BuildContext context, String departmentId) async {
+    final TextEditingController semesterController = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Create Semester'),
+          content: TextField(
+            controller: semesterController,
+            decoration: const InputDecoration(hintText: 'Enter semester name'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Create'),
+              onPressed: () async {
+                if (semesterController.text.isNotEmpty) {
+                  await FirebaseFirestore.instance
+                      .collection('departments')
+                      .doc(departmentId)
+                      .collection('semesters')
+                      .add({
+                    'name': semesterController.text,
+                    'createdAt': FieldValue.serverTimestamp(),
+                  });
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

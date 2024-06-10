@@ -157,6 +157,7 @@ class FacultySignUpController extends GetxController {
         contact: contactController.text,
         departmentCode: departmentController.text,
       );
+      await AuthService.setLoggedIn(true);
     }
   }
 

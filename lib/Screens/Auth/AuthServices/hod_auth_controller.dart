@@ -112,6 +112,7 @@ class HODSignUpController extends GetxController {
       );
       if (user != null) {
         // Handle successful sign-up
+        await AuthService.setLoggedIn(true);
         print('HOD sign-up successful!');
       } else {
         // Handle sign-up failure

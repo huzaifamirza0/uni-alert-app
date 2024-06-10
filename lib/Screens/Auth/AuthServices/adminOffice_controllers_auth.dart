@@ -1,7 +1,8 @@
 import 'package:email_validator/email_validator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:notification_app/Screens/Auth/AuthServices/auth_service.dart';
 import '../../../MainNavBar/main_navbar.dart';
 class AdminOfficeSignUpController extends GetxController {
   final TextEditingController nameController = TextEditingController();
@@ -212,15 +213,22 @@ class SignInController extends GetxController {
         emailError.value.isEmpty && passwordError.value.isEmpty;
   }
 
-  void signIn() {
+  void signIn() async {
     print('Email: ${emailController.text}');
     print('Password: ${passwordController.text}');
 
     if (isSignInFormValid.value) {
-      Get.to(() => NavBar());
-      print('Sign-In successful!');
+      User? user = await AuthService().signIn(emailController.text, passwordController.text);
+      if (user != null) {
+        await AuthService.setLoggedIn(true);
+        Get.snackbar('Success','Signed In successfully', snackPosition: SnackPosition.BOTTOM);
+        Get.to(() => NavBar());
+      } else {
+        // Handle sign-up failure
+        print('sign-In failed');
+      }
     }
-  }
+    }
 
   void togglePasswordVisibility() {
     obscurePassword.toggle();

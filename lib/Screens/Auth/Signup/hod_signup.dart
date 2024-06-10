@@ -86,7 +86,7 @@ class HodSignUpScreen extends StatelessWidget {
               const SizedBox(height: 24),
               SizedBox(
                 height: 50,
-                width: MediaQuery.of(context).size.width * 0.7,
+                width: MediaQuery.of(context).size.width,
                 child: CustomButton(
                   onPressed: signUpController.isSignUpFormValid.value
                       ? () => signUpController.signUp(NotificationServices())

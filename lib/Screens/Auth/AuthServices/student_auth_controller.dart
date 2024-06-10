@@ -166,6 +166,7 @@ class StudentSignUpController extends GetxController {
         batch: batchController.text,
       );
       if (user != null) {
+        await AuthService.setLoggedIn(true);
         Get.snackbar('Success','Created an account successfully', snackPosition: SnackPosition.BOTTOM);
         Get.back();
         print('Student sign-up successful!');

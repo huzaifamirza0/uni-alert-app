@@ -1,134 +1,213 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:notification_app/Screens/Auth/Login/login_screen.dart';
 
-import '../../Components/CustomButton.dart';
+import '../Auth/Login/login_screen.dart';
 
-class SliderWidget extends StatefulWidget {
+class SliderScreen extends StatefulWidget {
   @override
-  _SliderWidgetState createState() => _SliderWidgetState();
+  _SliderScreenState createState() => _SliderScreenState();
 }
 
-class _SliderWidgetState extends State<SliderWidget> {
-  final PageController _pageController = PageController(initialPage: 0);
+class _SliderScreenState extends State<SliderScreen> {
   int _currentPage = 0;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _startAutoSlide();
-  }
-
-  void _startAutoSlide() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      setState(() {
-        if (_currentPage < 2) {
-          _currentPage++;
-        } else {
-          _currentPage = 0;
-        }
-      });
-      _pageController.animateToPage(
-        _currentPage,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeIn,
-      );
-    });
-  }
-
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  Widget _buildPageContent(String imagePath, String title, String subtitle) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(imagePath, height: 300, fit: BoxFit.contain),
-          const SizedBox(height: 20),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            subtitle,
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 30),
-        ],
-      ),
-    );
-  }
+  final PageController _pageController = PageController(initialPage: 0);
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double buttonSize = screenWidth * 0.12;
     return Scaffold(
       body: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
+        children: <Widget>[
           PageView(
-            physics: const BouncingScrollPhysics(),
             controller: _pageController,
             onPageChanged: (int page) {
               setState(() {
                 _currentPage = page;
               });
             },
-            children: [
-              _buildPageContent('assets/splash/slide1.jpg', 'Welcome to UniAlert', 'Experience seamless communication and stay updated with the latest university announcements.'),
-              _buildPageContent('assets/splash/slide2.jpg', 'Personalized Notifications', 'Receive tailored notifications based on your interests and campus affiliations, ensuring you never miss important updates.'),
-              _buildPageContent('assets/splash/slide3.jpg', 'Stay Connected', 'Stay connected with your university community and stay informed about events, news, and important notices.')
+            children: <Widget>[
+              SliderPage(
+                title: 'Welcome to UniAlert',
+                description:
+                'Experience seamless communication and stay updated with the latest university announcements.',
+                image: 'assets/splash/slide1.jpg',
+              ),
+              SliderPage(
+                title: 'Personalized Notifications',
+                description:
+                'Receive tailored notifications based on your interests and campus affiliations, ensuring you never miss important updates.',
+                image: 'assets/splash/slide2.jpg',
+              ),
+              SliderPage(
+                title: 'Stay Connected',
+                description:
+                'Stay connected with your university community and stay informed about events, news, and important notices.',
+                image: 'assets/splash/slide3.jpg',
+              ),
             ],
           ),
           Positioned(
-            bottom: 100.0,
+            bottom: MediaQuery.of(context).size.height * 0.1,
+            left: MediaQuery.of(context).size.width * 0.4,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (index) {
-                return AnimatedContainer(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: List.generate(
+                3,
+                    (int index) => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                  width: _currentPage == index ? 12 : 8,
-                  height: _currentPage == index ? 12 : 8,
+                  height: 10.0,
+                  width: _currentPage == index ? 30.0 : 10.0,
+                  margin: const EdgeInsets.symmetric(horizontal: 5.0),
                   decoration: BoxDecoration(
-                    color: _currentPage == index ? Colors.green : Colors.grey,
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(5.0),
+                    color: _currentPage == index
+                        ? Colors.lightGreen
+                        : Colors.grey[300],
                   ),
-                );
-              }),
+                ),
+              ),
             ),
           ),
           Positioned(
             bottom: 20.0,
-            child: SizedBox(
-              height: 50,
-              width: MediaQuery.of(context).size.width * 0.7,
-              child: CustomButton(
-                color: Colors.lightGreen,
-                onPressed: () {
-                  Get.to(SignInScreen());
-                },
-                text: 'Get Started',
-              ),
+            left: 20.0,
+            right: 20.0,
+            child: _currentPage != 2
+                ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    _pageController.previousPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeIn,
+                    );
+                  },
+                  child: Text(
+                    _currentPage == 0 ? '' : 'Skip',
+                    style: const TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _pageController.nextPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeIn,
+                    );
+                  },
+                  child: Container(
+                    width: buttonSize,
+                    height: buttonSize,
+                    decoration: const BoxDecoration(
+                      color: Colors.lightGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons
+                            .arrow_forward, // This is the forward arrow icon
+                        color: Colors.white, // Set your desired
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+                : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Get.to(SignInScreen());
+                  },
+                  child: Container(
+                    width: screenWidth * 0.9,
+                    height: 50,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.lightGreen,
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Get Started',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Don\'t have an account? ',
+                      style: TextStyle(
+                          color: Colors.black
+                      ),
+                    ),
+                    GestureDetector(
+                      //onTap: (){Get.to(() => SignInScreen());},
+                      child: const Text(
+                        'Register',
+                        style: TextStyle(
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
 
+class SliderPage extends StatelessWidget {
+  final String title;
+  final String description;
+  final String image;
+
+  SliderPage(
+      {required this.title, required this.description, required this.image});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Image.asset(image),
+          const SizedBox(height: 30.0),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 22.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.lightGreen,
+            ),
+          ),
+          const SizedBox(height: 15.0),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
