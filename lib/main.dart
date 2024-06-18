@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:notification_app/MainNavBar/main_navbar.dart';
 import 'package:notification_app/Screens/notification.dart';
+import 'package:provider/provider.dart';
 import 'Screens/Auth/AuthServices/auth_service.dart';
+import 'Screens/Map/emergencyIdProvider.dart';
+import 'Screens/Map/emergency_state.dart';
 import 'Screens/splash/splash_slides.dart';
 import 'firebase_options.dart';
 
@@ -21,14 +24,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'UniAlert',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: Colors.green,
-        useMaterial3: true,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => EmergencyStatusProvider()),
+        ChangeNotifierProvider(create: (context) => EmergencyIdProvider()),
+      ],
+
+      child: GetMaterialApp(
+        title: 'UniAlert',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primaryColor: Colors.green,
+          useMaterial3: true,
+        ),
+        home: isLoggedIn ? NavBar() : SliderScreen()
       ),
-      home: isLoggedIn ? NavBar() : SliderScreen()
     );
   }
 }

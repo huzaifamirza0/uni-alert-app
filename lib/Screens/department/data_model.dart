@@ -29,3 +29,19 @@ class Batch {
     required this.picture,
   });
 }
+
+class AdminOffice {
+  final String name;
+  final int userCount;
+  final String description;
+  final String creationDate;
+  final String picture;
+
+  AdminOffice({
+    required this.name,
+    required this.userCount,
+    required this.description,
+    required this.creationDate,
+    required this.picture,
+  });
+}

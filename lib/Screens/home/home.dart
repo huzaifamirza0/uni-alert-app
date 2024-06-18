@@ -1,17 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../Services/logOutDialog.dart';
+import '../Profile/page/profile_page.dart';
+import '../Profile/widget/drawer.dart';
+import '../department/search_office.dart';
+import '../messaging/department_message.dart'; // Import the new widget
 
 class HomePage extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final appBarTitleFontSize = mediaQuery.size.width > 600 ? 28.0 : 24.0;
+
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text('Home'),
+        toolbarHeight: 76,
+        toolbarOpacity: 0.7,
+        backgroundColor: Colors.lightGreen.shade300,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white,),
+          onPressed: () {
+            _scaffoldKey.currentState!.openDrawer();
+          },
+        ),
+        title: Text(
+          'UniAlert', style: TextStyle(color: Colors.white, fontSize: appBarTitleFontSize,),),
+        actions: [
+          IconButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => SubscribeScreen()));
+          }, icon: const Icon(Icons.search_rounded, color: Colors.white,)),
+
+          const SizedBox(width: 12),
+          GestureDetector(
+              onTap: (){Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilePage()));
+              },
+              child: const Icon(Icons.person, color: Colors.white,)),
+          const SizedBox(width: 10),
+        ],
       ),
+      drawer: CustomDrawer(profileImageUrl: 'https://www.shareicon.net/data/512x512/2016/09/15/829459_man_512x512.png',
+          name: 'Name', email: 'name@gmail.com',
+          onLogout: (){
+            showDeleteUserDialog(context);
+          }),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -21,7 +58,7 @@ class HomePage extends StatelessWidget {
             _buildHorizontalSlider(context, _fetchMessages('public')),
             const SizedBox(height: 16.0),
             _buildSectionTitle(context, 'Department Messages'),
-            _buildVerticalList(context, _fetchMessages('department')),
+            _buildDepartmentMessages(context),
             const SizedBox(height: 16.0),
             _buildSectionTitle(context, 'Office Messages'),
             _buildGrid(context, _fetchMessages('office')),
@@ -233,6 +270,40 @@ class HomePage extends StatelessWidget {
               );
             },
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDepartmentMessages(BuildContext context) {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(_auth.currentUser?.uid).snapshots(),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        var userData = userSnapshot.data?.data() as Map<String, dynamic>?;
+        if (userData == null || userData['departmentCode'] == null) {
+          return const Center(child: Text('No department messages available'));
+        }
+
+        String departmentCode = userData['departmentCode'];
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('departments')
+              .where('code', isEqualTo: departmentCode).snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.data?.docs.isEmpty ?? true) {
+              return const Center(child: Text('No department messages available'));
+            }
+
+            var department = snapshot.data!.docs.first;
+            return DepartmentMessages(departmentId: department.id);
+          },
         );
       },
     );

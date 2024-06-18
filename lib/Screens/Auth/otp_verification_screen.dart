@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:notification_app/MainNavBar/main_navbar.dart';
-import '../../../Services/notification_services.dart';
 import 'AuthServices/auth_service.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
@@ -12,6 +11,10 @@ class OTPVerificationScreen extends StatefulWidget {
   final String name;
   final String email;
   final String deviceToken;
+  final String picture;
+  final bool emergency;
+  final double latitude;
+  final double longitude;
   final String? rollNo;
   final String? contact;
   final String? departmentCode;
@@ -21,6 +24,10 @@ class OTPVerificationScreen extends StatefulWidget {
   OTPVerificationScreen({
     required this.verificationId,
     this.user,
+    required this.picture,
+    required this.emergency,
+    required this.latitude,
+    required this.longitude,
     required this.role,
     required this.name,
     required this.email,
@@ -56,17 +63,21 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
           widget.role,
           widget.name,
           widget.email,
+          widget.picture,
+          widget.emergency,
+          widget.latitude,
+          widget.longitude,
           widget.deviceToken,
           rollNo: widget.rollNo,
           contact: widget.contact,
           departmentCode: widget.departmentCode,
           batch: widget.batch,
-          description: widget.description,
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('OTP verified successfully')),
         );
+        await AuthService.setLoggedIn(true);
         Get.offAll(() => NavBar());
       } catch (e) {
         // Handle OTP verification failure

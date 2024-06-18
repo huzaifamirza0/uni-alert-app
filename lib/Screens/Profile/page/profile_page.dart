@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../model/user.dart';
-import '../profile body/profile_items.dart';
+import '../widget/mapTile.dart';
+import '../widget/profile_items.dart';
 import '../utils/user_preferences.dart';
 import '../widget/appbar_widget.dart';
 import '../widget/button_widget.dart';
@@ -10,7 +10,6 @@ import '../widget/profile_widget.dart';
 import 'edit_profile_page.dart';
 
 class ProfilePage extends StatefulWidget {
-
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -59,7 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   imagePath: user.imagePath,
                   onClicked: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => EditProfilePage(user: user,)),
+                      MaterialPageRoute(builder: (context) => EditProfilePage(user: user)),
                     );
                   },
                 ),
@@ -70,40 +69,113 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 24),
                 NumbersWidget(),
                 const SizedBox(height: 24),
-                // GestureDetector(
-                //   onTap: (){
-                //     //Navigator.push(context, MaterialPageRoute(builder: (context) => const GoMap()));
-                //   },
-                //     child: LocationWidget(latitude: user.latitude, longitude: user.longitude)),
+                GestureDetector(
+                  onTap: () {
+                    // Navigation to map or location view can be added here
+                  },
+                  child: LocationWidget(latitude: user.latitude, longitude: user.longitude),
+                ),
                 const SizedBox(height: 18),
+                Padding(
+                  padding: const EdgeInsets.all(14.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Phone:',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                'Department:',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                'Batch:',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                'Date of Joining:',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 18),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user.phone,
+                                  style: const TextStyle(fontSize: 14),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  '',//user.departmentCode,
+                                  style: const TextStyle(fontSize: 14),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  user.role ?? 'N/A',
+                                  style: const TextStyle(fontSize: 14),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  user.status ?? 'N/A',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
                 Container(
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.black45)
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.black45),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Column(
                       children: [
-                        ProfileItem('Personal Details', Icons.person,
-                            onTap: (){} ),
-                        ProfileItem('My Department', Icons.school,
-                            onTap: (){} ),
-                        // ProfileItem('My Favorites', Icons.favorite,
-                        //     onTap: (){Navigator.push(context, MaterialPageRoute(builder: (context) => FavoriteItemList()));
-                        // } ),
-                        // ProfileItem('Shipping Addresses', Icons.location_on),
-                        // ProfileItem('My Card', Icons.credit_card),
-                        ProfileItem('Settings', Icons.settings),
+                        ProfileItem(
+                          'Personal Details',
+                          Icons.person,
+                          onTap: () {},
+                        ),
+                        ProfileItem(
+                          'My Department',
+                          Icons.school,
+                          onTap: () {},
+                        ),
+                        ProfileItem(
+                          'Settings',
+                          Icons.settings,
+                          onTap: () {},
+                        ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 30,),
+                const SizedBox(height: 30),
                 Container(
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.black45)
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.black45),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
@@ -111,8 +183,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         ProfileItem('FAQ', Icons.error),
                         ProfileItem('Privacy Policy', Icons.security),
-                        ProfileItem('Terms & Conditon', Icons.description),
-
+                        ProfileItem('Terms & Condition', Icons.description),
                       ],
                     ),
                   ),
@@ -156,7 +227,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         const SizedBox(height: 16),
         Text(
-          user.about,
+          user.about??'',
           style: const TextStyle(fontSize: 16, height: 1.4),
         ),
       ],

@@ -15,34 +15,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       appBar: AppBar(
         title: const Text('Notifications'),
       ),
-      body: Column(
+      body: const Column(
         children: [
-          ElevatedButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => NextScreen()));
-            }, child: Text('Next')),
-        ],
-      ),
-    );
-  }
-}
 
-class NextScreen extends StatelessWidget {
-  const NextScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          Center(
-            child: Text('id'),
-          ),
-          ElevatedButton(
-            onPressed: (){
-              print(Get.currentRoute);
-            },
-            child: Text('route print'),
-          )
         ],
       ),
     );

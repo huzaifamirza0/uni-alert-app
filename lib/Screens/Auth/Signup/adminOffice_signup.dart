@@ -22,7 +22,7 @@ class AdminOfficeSignUpScreen extends StatelessWidget {
               const SizedBox(height: 20),
               Obx(() => CustomTextField(
                 controller: signUpController.nameController,
-                labelText: 'Name',
+                labelText: 'Office Name',
                 preIcon: const Icon(Icons.person, color: Colors.lightGreen,),
                 errorText: signUpController.nameTouched.value
                     ? signUpController.nameError.value.isNotEmpty
@@ -54,18 +54,6 @@ class AdminOfficeSignUpScreen extends StatelessWidget {
                     : null
                     : null,
                 onChanged: (_) => signUpController.setPhoneTouched(true),
-              )),
-              const SizedBox(height: 12),
-              Obx(() => CustomTextField(
-                controller: signUpController.officeNameController,
-                labelText: 'Office Name',
-                preIcon: const Icon(Icons.business, color: Colors.lightGreen,),
-                errorText: signUpController.officeNameTouched.value
-                    ? signUpController.officeNameError.value.isNotEmpty
-                    ? signUpController.officeNameError.value
-                    : null
-                    : null,
-                onChanged: (_) => signUpController.setOfficeNameTouched(true),
               )),
               const SizedBox(height: 12),
               Obx(() => CustomTextField(

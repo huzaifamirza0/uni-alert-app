@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:notification_app/Screens/Map/map.dart';
 
 import '../Screens/Profile/page/profile_page.dart';
 import '../Screens/department/department_screen.dart';
-import '../Screens/home.dart';
+import '../Screens/home/home.dart';
 import '../Screens/notification.dart';
 
 class NavController extends GetxController {
@@ -52,13 +53,13 @@ class NavBar extends StatelessWidget {
                 BottomNavigationBarItem(
                   icon: Icon(
                     navController.selectedIndex.value == 2
-                        ? Icons.calendar_today
-                        : Icons.calendar_today_outlined,
+                        ? Icons.emergency
+                        : Icons.emergency_outlined,
                     color: navController.selectedIndex.value == 2
                         ? Colors.lightGreen
                         : Colors.grey,
                   ),
-                  label: 'Calendar',
+                  label: 'Emergency Alert',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(
@@ -85,9 +86,9 @@ class NavBar extends StatelessWidget {
                 case 0:
                   tabContent = HomePage();
                 case 1:
-                  tabContent = DepartmentScreen();
+                  tabContent = const DepartmentScreen();
                 case 2:
-                  tabContent = NotificationScreen();
+                  tabContent = const GoMap();
                 case 3:
                   tabContent = ProfilePage();
                 default:

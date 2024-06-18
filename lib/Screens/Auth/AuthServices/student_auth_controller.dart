@@ -159,6 +159,10 @@ class StudentSignUpController extends GetxController {
         nameController.text,
         emailController.text,
         passwordController.text,
+        'https://www.shareicon.net/data/512x512/2016/09/15/829459_man_512x512.png',
+        false,
+        0.0,
+        0.0,
         notificationServices,
         rollNo: rollNoController.text,
         contact: contactController.text,
@@ -166,7 +170,6 @@ class StudentSignUpController extends GetxController {
         batch: batchController.text,
       );
       if (user != null) {
-        await AuthService.setLoggedIn(true);
         Get.snackbar('Success','Created an account successfully', snackPosition: SnackPosition.BOTTOM);
         Get.back();
         print('Student sign-up successful!');

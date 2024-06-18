@@ -2,10 +2,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'data_model.dart';
 
-class DepartmentView extends StatelessWidget {
-  final Department department;
+class AdminOfficeView extends StatelessWidget {
+  final AdminOffice adminOffice;
 
-  DepartmentView({required this.department});
+  AdminOfficeView({required this.adminOffice});
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +30,9 @@ class DepartmentView extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: <Widget>[
-              if (department.picture.isNotEmpty) // Null check for department.picture
+              if (adminOffice.picture.isNotEmpty) // Null check for department.picture
                 Image.asset(
-                  department.picture,
+                  adminOffice.picture,
                   fit: BoxFit.cover,
                 ),
               Positioned(
@@ -45,7 +45,7 @@ class DepartmentView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                   child: const Text(
-                    'Department',
+                    'Admin-Office',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.white,
@@ -72,7 +72,7 @@ class DepartmentView extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min, // Ensure the column takes minimum space needed
                         children: <Widget>[
                           Text(
-                            department.name,
+                            adminOffice.name,
                             style: const TextStyle(
                               fontSize: 18.0,
                               fontWeight: FontWeight.bold,
@@ -80,22 +80,13 @@ class DepartmentView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4.0),
-                          Row(
-                            children: [
-                              Text(
-                                '${department.userCount} users',
-                                style: const TextStyle(fontSize: 14.0, color: Colors.white),
-                              ),
-                              const Spacer(),
-                              Text(
-                                department.code,
-                                style: const TextStyle(fontSize: 14.0, color: Colors.white),
-                              ),
-                            ],
+                          Text(
+                            '${adminOffice.userCount} users',
+                            style: const TextStyle(fontSize: 14.0, color: Colors.white),
                           ),
                           const SizedBox(height: 4.0),
                           Text(
-                            'Created on ${department.creationDate}',
+                            'Created on ${adminOffice.creationDate}',
                             style: const TextStyle(fontSize: 14.0, color: Colors.white),
                           ),
                         ],

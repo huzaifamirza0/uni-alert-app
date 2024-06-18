@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:notification_app/Screens/department/widgets/batch_widget.dart';
+import 'package:notification_app/Screens/department/admin_office_view.dart';
 import 'package:notification_app/Screens/department/department_detail_screen.dart';
+import 'package:notification_app/Screens/department/join_department_screen.dart';
+import 'package:notification_app/Screens/department/search_office.dart';
 import 'package:notification_app/Screens/department/widgets/batch_page_view.dart';
+import 'package:notification_app/Screens/messaging/department_chatRoom.dart';
+import '../messaging/admin_office_chat.dart';
+import 'admin_office_detail.dart';
 import 'data_model.dart';
 import 'department_created_view.dart';
 import 'dart:math';
@@ -19,8 +24,10 @@ class DepartmentScreen extends StatefulWidget {
 
 class _DepartmentScreenState extends State<DepartmentScreen> {
   int _currentPage = 0;
+  String selectedBatchId = '';
   final PageController _pageController = PageController(initialPage: 0);
   final TextEditingController messageController = TextEditingController();
+  final TextEditingController departmentCodeController = TextEditingController();
   User? user = FirebaseAuth.instance.currentUser;
 
   String _generateDepartmentCode() {
@@ -64,6 +71,9 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                       'userCount': 0,
                       'creationDate': Timestamp.now(),
                       'picture': 'assets/logo.png',
+                    });
+                    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+                      'departmentCode': departmentCode,
                     });
                   }
                   Navigator.of(context).pop();
@@ -132,19 +142,59 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
     );
   }
 
-  Future<void> _sendMessage(String departmentId) async {
-    if (messageController.text.isNotEmpty) {
-      Map<String, dynamic> messageData = {
-        'content': messageController.text,
-        'senderId': user?.uid,
-        'timestamp': FieldValue.serverTimestamp(),
-        'departmentId': departmentId,
-      };
+  Future<void> _createAdminOffice(BuildContext context) async {
+    final TextEditingController officeNameController = TextEditingController();
+    final TextEditingController officeDescriptionController = TextEditingController();
 
-      await FirebaseFirestore.instance.collection('departments').doc(departmentId).collection('messages')
-          .add(messageData);
-      messageController.clear();
-    }
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Create Admin Office'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: officeNameController,
+                decoration: const InputDecoration(hintText: 'Enter office name'),
+              ),
+              TextField(
+                controller: officeDescriptionController,
+                decoration: const InputDecoration(hintText: 'Enter office description'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Create'),
+              onPressed: () async {
+                if (officeNameController.text.isNotEmpty &&
+                    officeDescriptionController.text.isNotEmpty) {
+                  User? user = FirebaseAuth.instance.currentUser;
+                  if (user != null) {
+                    await FirebaseFirestore.instance.collection('adminOffices').add({
+                      'picture': 'assets/splash/slide2.jpg',
+                      'name': officeNameController.text,
+                      'description': officeDescriptionController.text,
+                      'creationDate': Timestamp.now(),
+                      'userCount': 0,
+                      'adminId': user.uid,
+                    });
+                  }
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -154,7 +204,14 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Department Management'),
+        toolbarHeight: 70,
+        centerTitle: true,
+        title: const Text('My Department', style: TextStyle(color: Colors.green),),
+        actions: [
+          IconButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => SubscribeScreen()));
+          }, icon: const Icon(Icons.search_rounded))
+        ],
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
@@ -177,9 +234,13 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
           print("User role: $role"); // Debugging print to check user role
 
           if (role == 'hod') {
-            return _buildHODView(context, userId);
+            return _buildHODView(context, userId, role);
           } else if (role == 'student') {
-            return _buildStudentView(context, userId);
+            return _buildStudentView(context, userId, role);
+          } else if (role == 'faculty') {
+            return _buildFacultyView(context, userId, role);
+          } else if (role == 'adminOfficer') {
+            return _buildAdminOfficeView(context, userId, role);
           } else {
             return const Center(child: Text('Invalid user role'));
           }
@@ -188,7 +249,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
     );
   }
 
-  Widget _buildHODView(BuildContext context, String userId) {
+  Widget _buildHODView(BuildContext context, String userId, String role) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('departments').where('hodId', isEqualTo: userId).snapshots(),
       builder: (context, snapshot) {
@@ -203,7 +264,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
         if (snapshot.data?.docs.isEmpty ?? true) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -305,47 +366,18 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                   borderColor: Colors.transparent,
                   iconColor: Colors.white,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: messageController,
-                        decoration: const InputDecoration(labelText: 'Enter your message'),
-                      ),
-                      const SizedBox(height: 16.0),
-                      ElevatedButton(
-                        onPressed: () => _sendMessage(department.id),
-                        child: const Text('Send'),
-                      ),
-                    ],
-                  ),
-                ),
-                // Chat view for all users
-                StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('departments').doc(department.id).collection('messages')
-                      .orderBy('timestamp', descending: true)
-                      .snapshots(),
-                  builder: (context, messageSnapshot) {
-                    if (messageSnapshot.hasError) {
-                      return const Center(child: Text('Something went wrong'));
-                    }
-                    if (messageSnapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
 
-                    return ListView(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: messageSnapshot.data!.docs.map((DocumentSnapshot document) {
-                        var messageData = document.data() as Map<String, dynamic>;
-                        return ListTile(
-                          title: Text(messageData['content']),
-                          subtitle: Text('Sent by ${messageData['senderId']} at ${messageData['timestamp']?.toDate() ?? ''}'),
-                        );
-                      }).toList(),
-                    );
-                  },
+                // Chat view for all users
+                const SizedBox(height: 20,),
+                AuthButton(
+                  onPressed: () => Get.to(DepartmentChatRoom(departmentId: department.id,
+                      departmentName: department['name'], userRole: role,)),
+                  icon: Icons.chat,
+                  text: 'Open Chat',
+                  textColor: Colors.white,
+                  color: Colors.lightGreen,
+                  borderColor: Colors.transparent,
+                  iconColor: Colors.white,
                 ),
               ],
             );
@@ -355,7 +387,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
     );
   }
 
-  Widget _buildStudentView(BuildContext context, String userId) {
+  Widget _buildStudentView(BuildContext context, String userId, String role) {
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
       builder: (context, userSnapshot) {
@@ -373,11 +405,40 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
           return const Center(child: Text('User data is null'));
         }
 
-        String departmentCode = userData['departmentCode'];
+        String departmentCode = userData['departmentCode'] ?? '';
+
+        if (departmentCode.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'You have not joined any department yet.',
+                    style: TextStyle(fontSize: 18),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  AuthButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => JoinDepartmentScreen()));
+                    },
+                    text: 'Join Department',
+                    color: Colors.lightGreen,
+                    icon: Icons.add,
+                    borderColor: Colors.transparent,
+                    textColor: Colors.white,
+                    iconColor: Colors.white,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
         return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection('departments')
-              .where('code', isEqualTo: departmentCode).snapshots(),
+          stream: FirebaseFirestore.instance.collection('departments').where('code', isEqualTo: departmentCode).snapshots(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return const Center(child: Text('Something went wrong'));
@@ -388,46 +449,126 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
             }
 
             if (snapshot.data?.docs.isEmpty ?? true) {
-              return const Center(child: Text('No department found'));
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('No department found with the provided code.'),
+                    const SizedBox(height: 20),
+                    AuthButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => JoinDepartmentScreen()));
+                      },
+                      text: 'Join Department',
+                      color: Colors.lightGreen,
+                      icon: Icons.add,
+                      borderColor: Colors.transparent,
+                      textColor: Colors.white,
+                      iconColor: Colors.white,
+                    ),
+                  ],
+                ),
+              );
             }
 
-            var department = snapshot.data!.docs.first;
+            var departmentData = snapshot.data?.docs.first.data() as Map<String, dynamic>;
+            String departmentId = snapshot.data?.docs.first.id ?? '';
 
             return ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                DepartmentView(
-                  department: Department(
-                    name: department['name'],
-                    userCount: department['userCount'],
-                    code: department['code'],
-                    creationDate: (department['creationDate'] as Timestamp).toDate().toString(),
-                    picture: department['picture'],
+                GestureDetector(
+                  onTap: (){
+                    Get.to(() => DepartmentDetailScreen(departmentId: departmentId));
+                  },
+                  child: DepartmentView(
+                    department: Department(
+                      name: departmentData['name'] ?? '',
+                      userCount: departmentData['userCount'] ?? 0,
+                      code: departmentData['code'] ?? '',
+                      creationDate: departmentData['creationDate'] != null
+                          ? (departmentData['creationDate'] as Timestamp).toDate().toString()
+                          : '',
+                      picture: departmentData['picture'] ?? '',
+                    ),
                   ),
                 ),
+                const SizedBox(height: 20),
                 StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('messages')
-                      .where('departmentId', isEqualTo: department.id)
-                      .orderBy('timestamp', descending: true)
+                  stream: FirebaseFirestore.instance
+                      .collection('departments')
+                      .doc(departmentId)
+                      .collection('batches')
+                      .where('userIds', arrayContains: userId)
                       .snapshots(),
-                  builder: (context, messageSnapshot) {
-                    if (messageSnapshot.hasError) {
-                      return const Center(child: Text('Something went wrong'));
-                    }
-                    if (messageSnapshot.connectionState == ConnectionState.waiting) {
+                  builder: (context, batchSnapshot) {
+                    if (!batchSnapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    return ListView(
+                    if (batchSnapshot.hasError) {
+                      return const Center(child: Text('Error loading batch data'));
+                    }
+
+                    if (batchSnapshot.data?.docs.isEmpty ?? true) {
+                      return const Center(child: Text('No batches found'));
+                    }
+
+                    return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      children: messageSnapshot.data!.docs.map((DocumentSnapshot document) {
-                        var messageData = document.data() as Map<String, dynamic>;
-                        return ListTile(
-                          title: Text(messageData['content']),
-                          subtitle: Text('Sent by ${messageData['senderId']} at ${messageData['timestamp']?.toDate() ?? ''}'),
+                      itemCount: batchSnapshot.data?.docs.length,
+                      itemBuilder: (context, batchIndex) {
+                        var batch = batchSnapshot.data?.docs[batchIndex];
+                        Map<String, dynamic>? batchData = batch?.data() as Map<String, dynamic>?;
+
+                        if (batchData == null) {
+                          return const Center(child: Text('Batch data is null'));
+                        }
+
+                        List<Batch> batches = batchSnapshot.data?.docs.map((doc) {
+                          return Batch(
+                            batch: doc['batch'] ?? '',
+                            createdAt: (doc['createdAt'] as Timestamp).toDate(),
+                            name: doc['name'] ?? '',
+                            userCount: doc['userCount'] ?? 0,
+                            picture: doc['picture'],
+                          );
+                        }).toList() ?? [];
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Batches',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 10),
+                            if (batches.isEmpty)
+                              const Center(
+                                child: Text(
+                                  'No batches created for this department.',
+                                  style: TextStyle(fontSize: 16),
+                                  textAlign: TextAlign.center,
+                                ),
+                              )
+                            else
+                              BatchPageView(batches: batches),
+                            const SizedBox(height: 10),
+                            AuthButton(
+
+                              onPressed: () => Get.to(DepartmentChatRoom(departmentId: departmentId,
+                                  departmentName: departmentData['name'], userRole: role,)),
+                              icon: Icons.chat,
+                              text: 'Open Chat',
+                              textColor: Colors.white,
+                              color: Colors.lightGreen,
+                              borderColor: Colors.transparent,
+                              iconColor: Colors.white,
+                            ),
+                          ],
                         );
-                      }).toList(),
+                      },
                     );
                   },
                 ),
@@ -438,4 +579,273 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
       },
     );
   }
+
+  Widget _buildFacultyView(BuildContext context, String userId, String role) {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(userId).snapshots(),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (userSnapshot.hasError) {
+          return const Center(child: Text('Error loading user data'));
+        }
+
+        var userData = userSnapshot.data?.data() as Map<String, dynamic>?;
+
+        if (userData == null) {
+          return const Center(child: Text('User data is null'));
+        }
+
+        var departmentCodesRaw = userData['departmentCode'];
+        List<String> departmentCodes;
+        if (departmentCodesRaw is String) {
+          departmentCodes = [departmentCodesRaw];
+        } else if (departmentCodesRaw is List) {
+          departmentCodes = List<String>.from(departmentCodesRaw);
+        } else {
+          return const Center(child: Text('Invalid data format for departmentCode'));
+        }
+
+        return ListView.builder(
+          itemCount: departmentCodes.length,
+          itemBuilder: (context, index) {
+            String departmentCode = departmentCodes[index];
+
+            return StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('departments')
+                  .where('code', isEqualTo: departmentCode).snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Something went wrong'));
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.data?.docs.isEmpty ?? true) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('No department found with the provided code.'),
+                        const SizedBox(height: 20),
+                        AuthButton(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => JoinDepartmentScreen()));
+                          },
+                          text: 'Join Department',
+                          color: Colors.lightGreen,
+                          icon: Icons.add,
+                          borderColor: Colors.transparent,
+                          textColor: Colors.white,
+                          iconColor: Colors.white,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                var department = snapshot.data!.docs.first;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DepartmentView(
+                        department: Department(
+                          name: department['name'],
+                          userCount: department['userCount'],
+                          code: department['code'],
+                          creationDate: (department['creationDate'] as Timestamp).toDate().toString(),
+                          picture: department['picture'],
+                        ),
+                      ),
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('departments')
+                            .doc(department.id)
+                            .collection('batches')
+                            .where('userIds', arrayContains: user!.uid)
+                            .snapshots(),
+                        builder: (context, batchSnapshot) {
+                          if (batchSnapshot.hasError) {
+                            return const Center(child: Text('Something went wrong'));
+                          }
+
+                          if (batchSnapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+
+                          List<Batch> batches = batchSnapshot.data?.docs.map((doc) {
+                            return Batch(
+                              batch: doc['batch'] ?? '',
+                              createdAt: (doc['createdAt'] as Timestamp).toDate(),
+                              name: doc['name'] ?? '',
+                              userCount: doc['userCount'] ?? 0,
+                              picture: doc['picture'],
+                            );
+                          }).toList() ?? [];
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 20),
+                              const Text(
+                                'Batches',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 10),
+                              if (batches.isEmpty)
+                                const Center(
+                                  child: Text(
+                                    'No batches created for this department.',
+                                    style: TextStyle(fontSize: 16),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                )
+                              else
+                                BatchPageView(batches: batches),
+                              const SizedBox(height: 10),
+                              AuthButton(
+                                onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => JoinDepartmentScreen()));
+                                },
+                                text: 'Join Department',
+                                color: Colors.lightGreen,
+                                icon: Icons.add,
+                                borderColor: Colors.transparent,
+                                textColor: Colors.white,
+                                iconColor: Colors.white,
+                              ),
+                              const SizedBox(height: 16,),
+                              AuthButton(
+                                onPressed: () => Get.to(DepartmentChatRoom(departmentId: department.id,
+                                    departmentName: department['name'], userRole: role,)),
+                                icon: Icons.chat,
+                                text: 'Open Chat',
+                                textColor: Colors.white,
+                                color: Colors.lightGreen,
+                                borderColor: Colors.transparent,
+                                iconColor: Colors.white,
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAdminOfficeView(BuildContext context, String userId, String role) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('adminOffices').where('adminId', isEqualTo: userId).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(child: Text('Something went wrong'));
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.data == null || snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'You have not created an admin office yet.',
+                    style: TextStyle(fontSize: 18),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      _createAdminOffice(context);
+                    },
+                    child: const Text('Create Admin Office'),
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.lightGreen,
+                      onPrimary: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        var adminOfficeData = snapshot.data!.docs.first;
+
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.3,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AdminOfficeDetailScreen(adminOfficeId: adminOfficeData.id),
+                      ),
+                    );
+                  },
+                  child: AdminOfficeView(
+                    adminOffice: AdminOffice(
+                      name: adminOfficeData['name'] ?? '',
+                      userCount: adminOfficeData['userCount'] ?? 0,
+                      description: adminOfficeData['description'] ?? '',
+                      creationDate: adminOfficeData['creationDate'] != null
+                          ? (adminOfficeData['creationDate'] as Timestamp).toDate().toString()
+                          : '',
+                      picture: adminOfficeData['picture'] ?? '',
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+              AuthButton(
+                onPressed: () {
+                  Get.to(() => AdminOfficeChatRoom(
+                        adminOfficeId: adminOfficeData.id,
+                        adminOfficeName: adminOfficeData['name'] ?? 'Chat Room',
+                      ),
+                    );
+                },
+                text: 'Go to Chat Room',
+                icon: Icons.chat,
+                color: Colors.lightGreen,
+                borderColor: Colors.transparent,
+                iconColor: Colors.white,
+                textColor: Colors.white,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 }

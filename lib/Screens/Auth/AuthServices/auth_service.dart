@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Services/notification_services.dart';
 import '../otp_verification_screen.dart';
 
-enum UserRole { student, hod, faculty, adminOffice }
+enum UserRole { student, hod, faculty, adminOfficer }
 
 class AuthService {
   static const _isLoggedInKey = 'isLoggedIn';
@@ -33,6 +33,11 @@ class AuthService {
       String name,
       String email,
       String password,
+      String picture,
+      bool emergency,
+      double latitude,
+      double longitude,
+
       NotificationServices notificationServices, {
         String? rollNo,
         String? contact,
@@ -60,6 +65,10 @@ class AuthService {
           role,
           name,
           email,
+          picture,
+          emergency,
+          latitude,
+          longitude,
           deviceToken,
           rollNo: rollNo,
           contact: contact,
@@ -85,18 +94,25 @@ class AuthService {
       UserRole role,
       String name,
       String email,
+      String picture,
+      bool emergency,
+      double latitude,
+      double longitude,
       String deviceToken, {
         String? rollNo,
         String? contact,
         String? departmentCode,
         String? batch,
-        String? description,
       }) async {
     Map<String, dynamic> userData = {
       'name': name,
       'email': email,
       'deviceToken': deviceToken,
       'uid': user.uid,
+      'picture': picture,
+      'emergency': emergency,
+      'latitude' : latitude,
+      'longitude': longitude,
       'role': role.toString().split('.').last,
     };
 
@@ -127,10 +143,9 @@ class AuthService {
         });
         break;
 
-      case UserRole.adminOffice:
+      case UserRole.adminOfficer:
         userData.addAll({
           'status': 'active',
-          'description': description,
         });
         break;
     }
@@ -144,6 +159,10 @@ class AuthService {
       UserRole role,
       String name,
       String email,
+      String picture,
+      bool emergency,
+      double latitude,
+      double longitude,
       String deviceToken, {
         String? rollNo,
         String? contact,
@@ -161,12 +180,15 @@ class AuthService {
           role,
           name,
           email,
+          picture,
+          emergency,
+          latitude,
+          longitude,
           deviceToken,
           rollNo: rollNo,
           contact: contact,
           departmentCode: departmentCode,
           batch: batch,
-          description: description,
         );
         Get.offAll(() => NavBar());
       },
@@ -181,6 +203,10 @@ class AuthService {
           role: role,
           name: name,
           email: email,
+          picture: picture,
+          emergency: emergency,
+          latitude: latitude,
+          longitude: longitude,
           deviceToken: deviceToken,
           rollNo: rollNo,
           contact: contact,

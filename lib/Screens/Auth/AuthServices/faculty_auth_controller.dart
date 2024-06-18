@@ -153,11 +153,14 @@ class FacultySignUpController extends GetxController {
         nameController.text,
         emailController.text,
         passwordController.text,
+        'https://www.shareicon.net/data/512x512/2016/09/15/829459_man_512x512.png',
+        false,
+        0.0,
+        0.0,
         notificationServices,
         contact: contactController.text,
         departmentCode: departmentController.text,
       );
-      await AuthService.setLoggedIn(true);
     }
   }
 
