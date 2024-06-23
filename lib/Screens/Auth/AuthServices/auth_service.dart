@@ -41,8 +41,6 @@ class AuthService {
       NotificationServices notificationServices, {
         String? rollNo,
         String? contact,
-        String? departmentCode,
-        String? batch,
         String? description,
       }) async {
     try {
@@ -72,8 +70,6 @@ class AuthService {
           deviceToken,
           rollNo: rollNo,
           contact: contact,
-          departmentCode: departmentCode,
-          batch: batch,
           description: description,
         );
 
@@ -101,8 +97,6 @@ class AuthService {
       String deviceToken, {
         String? rollNo,
         String? contact,
-        String? departmentCode,
-        String? batch,
       }) async {
     Map<String, dynamic> userData = {
       'name': name,
@@ -124,8 +118,6 @@ class AuthService {
       case UserRole.student:
         userData.addAll({
           'rollNo': rollNo,
-          'departmentCode': departmentCode,
-          'batch': batch,
           'status': 'unavailable',
         });
         break;
@@ -138,7 +130,6 @@ class AuthService {
 
       case UserRole.faculty:
         userData.addAll({
-          'departmentCode': departmentCode,
           'status': 'pending',
         });
         break;
@@ -166,8 +157,6 @@ class AuthService {
       String deviceToken, {
         String? rollNo,
         String? contact,
-        String? departmentCode,
-        String? batch,
         String? description,
       }) async {
     await _auth.verifyPhoneNumber(
@@ -187,8 +176,6 @@ class AuthService {
           deviceToken,
           rollNo: rollNo,
           contact: contact,
-          departmentCode: departmentCode,
-          batch: batch,
         );
         Get.offAll(() => NavBar());
       },
@@ -210,9 +197,6 @@ class AuthService {
           deviceToken: deviceToken,
           rollNo: rollNo,
           contact: contact,
-          departmentCode: departmentCode,
-          batch: batch,
-          description: description,
         ));
       },
       codeAutoRetrievalTimeout: (String verificationId) {},

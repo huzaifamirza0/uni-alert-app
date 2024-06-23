@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../messaging/event/event_message.dart';
+
 class CustomDrawer extends StatelessWidget {
+  final String userRole;
   final String profileImageUrl;
   final String name;
   final String email;
   final VoidCallback onLogout;
 
   const CustomDrawer({
+    required this.userRole,
     required this.profileImageUrl,
     required this.name,
     required this.email,
@@ -37,6 +41,18 @@ class CustomDrawer extends StatelessWidget {
               Navigator.pop(context); // Close the drawer
             },
           ),
+          if (userRole == 'hod' || userRole == 'adminOfficer')
+            ListTile(
+              leading: const Icon(Icons.event),
+              title: const Text('Create Event'),
+              onTap: () {
+                Navigator.pop(context);
+                showDialog(
+                  context: context,
+                  builder: (context) => EventDialog(userRole: userRole),
+                );
+              },
+            ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout),

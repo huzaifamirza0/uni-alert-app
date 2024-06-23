@@ -33,18 +33,6 @@ class FacultySignUpScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               CustomTextField(
-                controller: signUpController.departmentController,
-                labelText: 'Department',
-                preIcon: const Icon(Icons.school, color: Colors.lightGreen,),
-                errorText: signUpController.departmentTouched.value
-                    ? signUpController.departmentError.value.isNotEmpty
-                    ? signUpController.departmentError.value
-                    : null
-                    : null,
-                onChanged: (value) => signUpController.setDepartmentTouched(true),
-              ),
-              const SizedBox(height: 12),
-              CustomTextField(
                 controller: signUpController.emailController,
                 labelText: 'Email',
                 preIcon: const Icon(Icons.email, color: Colors.lightGreen,),

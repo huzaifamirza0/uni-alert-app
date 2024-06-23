@@ -1,14 +1,18 @@
+import 'package:chat_message_timestamp/chat_message_timestamp.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../Services/logOutDialog.dart';
 import '../Profile/page/profile_page.dart';
-import '../Profile/widget/drawer.dart';
+import '../messaging/admin_office_message.dart';
+import '../messaging/event/event_dialog.dart';
+import '../messaging/event/event_model.dart';
+import '../messaging/event/event_widget.dart';
+import 'drawer.dart';
 import '../department/search_office.dart';
-import '../messaging/department_message.dart'; // Import the new widget
+import '../messaging/department_message.dart';
 
 class HomePage extends StatelessWidget {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -48,26 +52,24 @@ class HomePage extends StatelessWidget {
           name: 'Name', email: 'name@gmail.com',
           onLogout: (){
             showDeleteUserDialog(context);
-          }),
+          }, userRole: 'hod',),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionTitle(context, 'Public Messages'),
-            _buildHorizontalSlider(context, _fetchMessages('public')),
+            _buildHorizontalSlider(context, _fetchMessages('messages')),
             const SizedBox(height: 16.0),
             _buildSectionTitle(context, 'Department Messages'),
             _buildDepartmentMessages(context),
             const SizedBox(height: 16.0),
             _buildSectionTitle(context, 'Office Messages'),
-            _buildGrid(context, _fetchMessages('office')),
+            SubscribedMessagesGrid(),
             const SizedBox(height: 16.0),
             _buildSectionTitle(context, 'Events and Alerts'),
-            _buildHorizontalSliderWithImages(context, _fetchMessages('events')),
-            const SizedBox(height: 16.0),
-            _buildSectionTitle(context, 'Personal Messages'),
-            _buildVerticalList(context, _fetchPersonalMessages()),
+            _buildHorizontalSliderEvents(context, _fetchMessages('events')),
+            const SizedBox(height: 92.0),
           ],
         ),
       ),
@@ -77,7 +79,7 @@ class HomePage extends StatelessWidget {
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.headline6,
+      style: Theme.of(context).textTheme.titleLarge,
     );
   }
 
@@ -89,37 +91,16 @@ class HomePage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
         var messages = snapshot.data!.docs;
-        return Container(
-          height: 150.0,
+        return SizedBox(
+          height: 170.0,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: messages.length,
             itemBuilder: (context, index) {
               var message = messages[index];
-              return Container(
-                width: 300.0,
-                margin: const EdgeInsets.only(right: 16.0),
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(8.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(message['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8.0),
-                    Text(message['content']),
-                  ],
-                ),
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: _messageItem(context, message),
               );
             },
           ),
@@ -128,144 +109,28 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildVerticalList(BuildContext context, Stream<QuerySnapshot> messageStream) {
+  Widget _buildHorizontalSliderEvents(BuildContext context, Stream<QuerySnapshot> eventStream) {
     return StreamBuilder<QuerySnapshot>(
-      stream: messageStream,
+      stream: eventStream,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        var messages = snapshot.data!.docs;
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: messages.length,
-          itemBuilder: (context, index) {
-            var message = messages[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16.0),
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(8.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(message['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8.0),
-                  Text(message['content']),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildGrid(BuildContext context, Stream<QuerySnapshot> messageStream) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: messageStream,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        var messages = snapshot.data!.docs;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 3 / 2,
-            crossAxisSpacing: 16.0,
-            mainAxisSpacing: 16.0,
-          ),
-          itemCount: messages.length,
-          itemBuilder: (context, index) {
-            var message = messages[index];
-            return Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(8.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(message['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8.0),
-                  Text(message['content']),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildHorizontalSliderWithImages(BuildContext context, Stream<QuerySnapshot> messageStream) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: messageStream,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        var messages = snapshot.data!.docs;
-        return Container(
+        var events = snapshot.data!.docs.map((doc) => Event.fromDocumentSnapshot(doc)).toList();
+        return SizedBox(
           height: 200.0,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: messages.length,
+            itemCount: events.length,
             itemBuilder: (context, index) {
-              var message = messages[index];
-              return Container(
-                width: 250.0,
-                margin: const EdgeInsets.only(right: 16.0),
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(8.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Image.network(
-                      message['imageUrl'],
-                      fit: BoxFit.cover,
-                      height: 100.0,
-                      width: double.infinity,
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(message['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8.0),
-                    Text(message['content']),
-                  ],
+              var event = events[index];
+              return EventCard(
+                event: event,
+                onTap: () => showDialog(
+                  context: context,
+                  builder: (context) {
+                    return EventDetailDialog(event: event);
+                  },
                 ),
               );
             },
@@ -274,6 +139,7 @@ class HomePage extends StatelessWidget {
       },
     );
   }
+
 
   Widget _buildDepartmentMessages(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
@@ -287,7 +153,6 @@ class HomePage extends StatelessWidget {
         if (userData == null || userData['departmentCode'] == null) {
           return const Center(child: Text('No department messages available'));
         }
-
         String departmentCode = userData['departmentCode'];
 
         return StreamBuilder<QuerySnapshot>(
@@ -310,14 +175,110 @@ class HomePage extends StatelessWidget {
   }
 
   Stream<QuerySnapshot> _fetchMessages(String collection) {
-    return _firestore.collection(collection).snapshots();
+    return FirebaseFirestore.instance.collection(collection).snapshots();
   }
 
-  Stream<QuerySnapshot> _fetchPersonalMessages() {
-    User? user = _auth.currentUser;
-    return _firestore
-        .collection('personal_messages')
-        .where('recipientId', isEqualTo: user?.uid)
-        .snapshots();
+
+  Widget _messageItem(BuildContext context, DocumentSnapshot message) {
+    Map<String, dynamic> map = message.data() as Map<String, dynamic>;
+    Timestamp? timestamp = map['timestamp'] as Timestamp?;
+    String time = timestamp != null ? _formatTime(timestamp.toDate()) : 'Unknown';
+    String senderName = map['sender'] ?? 'Unknown sender';
+    String messageContent = map['message'] ?? '';
+
+    return GestureDetector(
+      onLongPress: (){
+        _showMessageDialog(context, senderName, messageContent, time);
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.68,
+        margin: const EdgeInsets.only(bottom: 16.0),
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                senderName,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (map['message'] != null && map['message'].isNotEmpty)
+                GestureDetector(
+                  onTap: () => _showMessageDialog(context, senderName, map['message'], time),
+                  child: TimestampedChatMessage(
+                    sendingStatusIcon: const Icon(Icons.check, color: Colors.lightGreen,),
+                    text: _truncateMessage(map['message']),
+                    sentAt: time,
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
+                    sentAtStyle: const TextStyle(color: Colors.black, fontSize: 12),
+                    maxLines: 3,
+                    delimiter: '\u2026',
+                    viewMoreText: 'showMore',
+                    showMoreTextStyle: const TextStyle(color: Colors.blue),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime time) {
+    String period = time.hour < 12 ? 'AM' : 'PM';
+    int hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+    String minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $period';
+  }
+
+  String _truncateMessage(String message, {int maxLength = 66}) {
+    if (message.length <= maxLength) {
+      return message;
+    } else {
+      return '${message.substring(0, maxLength)}... see more';
+    }
+  }
+
+  void _showMessageDialog(BuildContext context, String senderName, String messageContent, String time) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(senderName),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Sent at: $time', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              const SizedBox(height: 10),
+              Text(messageContent),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

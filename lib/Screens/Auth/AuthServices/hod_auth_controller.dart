@@ -20,17 +20,26 @@ class HODSignUpController extends GetxController {
   final RxBool nameTouched = false.obs;
   final RxBool emailTouched = false.obs;
   final RxBool contactTouched = false.obs;
-  final RxBool departmentTouched = false.obs;
   final RxBool passwordTouched = false.obs;
   final RxBool confirmPasswordTouched = false.obs;
 
   final RxString nameError = ''.obs;
   final RxString emailError = ''.obs;
   final RxString contactError = ''.obs;
-  final RxString departmentError = ''.obs;
   final RxString passwordError = ''.obs;
   final RxString confirmPasswordError = ''.obs;
 
+
+  bool isValidContact(String contact) {
+    final regex = RegExp(r'^\+923\d{9}$');
+    return regex.hasMatch(contact);
+  }
+
+  bool isValidUonEmail(String email) {
+    final regex = RegExp(r'^.*@uon\.edu\.pk$');
+    return regex.hasMatch(email);
+  }
+  
   void validateForm() {
     // Validate name
     if (nameTouched.value) {
@@ -43,7 +52,7 @@ class HODSignUpController extends GetxController {
 
     // Validate email
     if (emailTouched.value) {
-      if (EmailValidator.validate(emailController.text)) {
+      if (isValidUonEmail(emailController.text)) {
         emailError.value = '';
       } else {
         emailError.value = 'Please enter a valid email';
@@ -52,21 +61,13 @@ class HODSignUpController extends GetxController {
 
     // Validate contact
     if (contactTouched.value) {
-      if (contactController.text.length >= 9) {
+      if (isValidContact(contactController.text)) {
         contactError.value = '';
       } else {
         contactError.value = 'Please enter a valid contact number';
       }
     }
 
-    // Validate department
-    if (departmentTouched.value) {
-      if (departmentController.text.isNotEmpty) {
-        departmentError.value = '';
-      } else {
-        departmentError.value = 'Please enter your department';
-      }
-    }
 
     // Validate password
     if (passwordTouched.value) {
@@ -112,7 +113,6 @@ class HODSignUpController extends GetxController {
         0.0,
         notificationServices,
         contact: contactController.text,
-        //departmentCode: departmentController.text,
       );
       if (user != null) {
         print('HOD sign-up successful!');
@@ -146,10 +146,6 @@ class HODSignUpController extends GetxController {
     validateForm();
   }
 
-  void setDepartmentTouched(bool touched) {
-    departmentTouched.value = touched;
-    validateForm();
-  }
 
   void setPasswordTouched(bool touched) {
     passwordTouched.value = touched;

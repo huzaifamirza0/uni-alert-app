@@ -1,35 +1,32 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import '../model/user.dart';
-import '../utils/user_preferences.dart';
 import '../widget/appbar_widget.dart';
 import '../widget/profile_widget.dart';
 import '../widget/textfield_widget.dart';
 
 class EditProfilePage extends StatefulWidget {
   final User user;
+  final String imageUrl;
 
-  const EditProfilePage({Key? key, required this.user}) : super(key: key);
+  const EditProfilePage({Key? key, required this.user, required this.imageUrl}) : super(key: key);
   @override
   _EditProfilePageState createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
   late User user;
+  File? _image;
+  bool _isLoading = false;
+  final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
 
   @override
   void initState() {
     super.initState();
-    //loadUser(); // Call loadUser method to initialize user field
     user = widget.user;
   }
-
-  // Future<void> loadUser() async {
-  //   final fetchedUser = await UserPreferences.fetchMyUser();
-  //   setState(() {
-  //     user = fetchedUser;
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -42,10 +39,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     physics: BouncingScrollPhysics(),
     children: [
       ProfileWidget(
-        imagePath: user.imagePath,
+        imagePath: _image != null ? _image!.path : widget.imageUrl,
         isEdit: true,
         onClicked: () async {
-          // Handle image selection or capture here
+          _showUploadOptions(context);
         },
       ),
       const SizedBox(height: 24),
@@ -71,4 +68,51 @@ class _EditProfilePageState extends State<EditProfilePage> {
   );
 
   Widget buildLoading() => Center(child: CircularProgressIndicator());
+
+  void _showUploadOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.camera),
+              title: const Text('Take Photo'),
+              onTap: () {
+                _getImageFromCamera(context);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                _getImageFromGallery(context);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _getImageFromCamera(BuildContext context) async {
+    final image = await ImagePicker().pickImage(source: ImageSource.camera);
+    if (image != null) {
+      setState(() {
+        _image = File(image.path);
+      });
+    }
+  }
+
+  Future<void> _getImageFromGallery(BuildContext context) async {
+    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _image = File(image.path);
+      });
+    }
+  }
 }

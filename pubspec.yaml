@@ -74,6 +74,7 @@ dependencies:
   flutter_native_splash: ^2.3.9
   path_provider: ^2.0.9
   open_file: ^3.2.1
+  rxdart: ^0.27.1
 
 dev_dependencies:
   flutter_test:

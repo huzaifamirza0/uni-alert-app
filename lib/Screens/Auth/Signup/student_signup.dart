@@ -71,42 +71,6 @@ class StudentSignUpScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               CustomTextField(
-                controller: signUpController.departmentController,
-                labelText: 'Department',
-                preIcon: const Icon(Icons.school, color: Colors.lightGreen,),
-                errorText: signUpController.departmentTouched.value
-                    ? signUpController.departmentError.value.isNotEmpty
-                    ? signUpController.departmentError.value
-                    : null
-                    : null,
-                onChanged: (value) => signUpController.setDepartmentTouched(true),
-              ),
-              const SizedBox(height: 12),
-              CustomTextField(
-                controller: signUpController.batchController,
-                labelText: 'Batch',
-                preIcon: const Icon(Icons.date_range, color: Colors.lightGreen,),
-                errorText: signUpController.batchTouched.value
-                    ? signUpController.batchError.value.isNotEmpty
-                    ? signUpController.batchError.value
-                    : null
-                    : null,
-                onChanged: (value) => signUpController.setBatchTouched(true),
-              ),
-              const SizedBox(height: 12),
-              CustomTextField(
-                controller: signUpController.semesterController,
-                labelText: 'Semester',
-                preIcon: const Icon(Icons.book, color: Colors.lightGreen,),
-                errorText: signUpController.semesterTouched.value
-                    ? signUpController.semesterError.value.isNotEmpty
-                    ? signUpController.semesterError.value
-                    : null
-                    : null,
-                onChanged: (value) => signUpController.setSemesterTouched(true),
-              ),
-              const SizedBox(height: 12),
-              CustomTextField(
                 controller: signUpController.passwordController,
                 obscureText: signUpController.obscurePassword.value,
                 labelText: 'Password',

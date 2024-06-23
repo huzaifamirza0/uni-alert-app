@@ -82,7 +82,7 @@ class DepartmentMessages extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 16.0),
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.lightGreen,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(8.0),
               boxShadow: [
                 BoxShadow(
@@ -99,18 +99,18 @@ class DepartmentMessages extends StatelessWidget {
                 Text(
                   senderName,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 if (map['content'] != null && map['content'].isNotEmpty)
                   TimestampedChatMessage(
-                    sendingStatusIcon: Icon(Icons.check),
+                    sendingStatusIcon: Icon(Icons.check, color: Colors.lightGreen,),
                     text: map['content'],
                     sentAt: time,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    style: const TextStyle(color: Colors.black, fontSize: 16),
                     sentAtStyle:
-                        const TextStyle(color: Colors.white, fontSize: 12),
+                        const TextStyle(color: Colors.black, fontSize: 12),
                     maxLines: 3,
                     delimiter: '\u2026',
                     viewMoreText: 'showMore',

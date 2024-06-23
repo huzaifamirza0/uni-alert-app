@@ -12,7 +12,6 @@ class FacultySignUpController extends GetxController {
   final TextEditingController confirmPasswordController = TextEditingController();
 
   var nameTouched = false.obs;
-  var departmentTouched = false.obs;
   var emailTouched = false.obs;
   var contactTouched = false.obs;
   var passwordTouched = false.obs;
@@ -22,43 +21,12 @@ class FacultySignUpController extends GetxController {
   var obscureConfirmPassword = true.obs;
 
   var nameError = ''.obs;
-  var departmentError = ''.obs;
   var emailError = ''.obs;
   var contactError = ''.obs;
   var passwordError = ''.obs;
   var confirmPasswordError = ''.obs;
 
   var isSignUpFormValid = false.obs;
-
-  void setNameTouched(bool touched) {
-    nameTouched.value = touched;
-    validateName();
-  }
-
-  void setDepartmentTouched(bool touched) {
-    departmentTouched.value = touched;
-    validateDepartment();
-  }
-
-  void setEmailTouched(bool touched) {
-    emailTouched.value = touched;
-    validateEmail();
-  }
-
-  void setContactTouched(bool touched) {
-    contactTouched.value = touched;
-    validateContact();
-  }
-
-  void setPasswordTouched(bool touched) {
-    passwordTouched.value = touched;
-    validatePassword();
-  }
-
-  void setConfirmPasswordTouched(bool touched) {
-    confirmPasswordTouched.value = touched;
-    validateConfirmPassword();
-  }
 
   void togglePasswordVisibility() {
     obscurePassword.toggle();
@@ -68,82 +36,101 @@ class FacultySignUpController extends GetxController {
     obscureConfirmPassword.toggle();
   }
 
-
-  void validateName() {
-    if (nameController.text.isEmpty) {
-      nameError.value = 'Name cannot be empty';
-    } else {
-      nameError.value = '';
-    }
+  void setNameTouched(bool touched) {
+    nameTouched.value = touched;
     validateForm();
   }
 
-  void validateDepartment() {
-    if (departmentController.text.isEmpty) {
-      departmentError.value = 'Department cannot be empty';
-    } else {
-      departmentError.value = '';
-    }
+  void setEmailTouched(bool touched) {
+    emailTouched.value = touched;
     validateForm();
   }
 
-  void validateEmail() {
-    if (emailController.text.isEmpty) {
-      emailError.value = 'Email cannot be empty';
-    } else if (!GetUtils.isEmail(emailController.text)) {
-      emailError.value = 'Enter a valid email address';
-    } else {
-      emailError.value = '';
-    }
+  void setContactTouched(bool touched) {
+    contactTouched.value = touched;
     validateForm();
   }
 
-  void validateContact() {
-    if (contactController.text.isEmpty) {
-      contactError.value = 'Contact cannot be empty';
-    } else {
-      contactError.value = '';
-    }
+  void setPasswordTouched(bool touched) {
+    passwordTouched.value = touched;
     validateForm();
   }
 
-  void validatePassword() {
-    if (passwordController.text.isEmpty) {
-      passwordError.value = 'Password cannot be empty';
-    } else {
-      passwordError.value = '';
-    }
+  void setConfirmPasswordTouched(bool touched) {
+    confirmPasswordTouched.value = touched;
     validateForm();
   }
 
-  void validateConfirmPassword() {
-    if (confirmPasswordController.text.isEmpty) {
-      confirmPasswordError.value = 'Confirm Password cannot be empty';
-    } else if (confirmPasswordController.text != passwordController.text) {
-      confirmPasswordError.value = 'Passwords do not match';
-    } else {
-      confirmPasswordError.value = '';
-    }
-    validateForm();
+
+  bool isValidUonEmail(String email) {
+    final regex = RegExp(r'^.*@uon\.edu\.pk$');
+    return regex.hasMatch(email);
   }
+
+  bool isValidContact(String contact) {
+    final regex = RegExp(r'^\+923\d{9}$');
+    return regex.hasMatch(contact);
+  }
+
 
   void validateForm() {
-    if (nameError.value.isEmpty &&
-        departmentError.value.isEmpty &&
+    // Validate name
+    if (nameTouched.value) {
+      if (nameController.text.length > 2) {
+        nameError.value = '';
+      } else {
+        nameError.value = 'Please enter your name';
+      }
+    }
+
+    // Validate email
+    if (emailTouched.value) {
+      if (isValidUonEmail(emailController.text)) {
+        emailError.value = '';
+      } else {
+        emailError.value = 'Please enter a valid email (e.g., 20uon0567@uon.edu.pk)';
+      }
+    }
+
+    // Validate contact
+    if (contactTouched.value) {
+      if (isValidContact(contactController.text)) {
+        contactError.value = '';
+      } else {
+        contactError.value = 'Please enter a valid contact number';
+      }
+    }
+
+
+    // Validate password
+    if (passwordTouched.value) {
+      if (passwordController.text.length < 6) {
+        passwordError.value = 'Password must be at least 6 characters long';
+      } else {
+        passwordError.value = '';
+      }
+    }
+
+    // Validate confirm password
+    if (confirmPasswordTouched.value) {
+      if (confirmPasswordController.text != passwordController.text) {
+        confirmPasswordError.value = 'Passwords do not match';
+      } else {
+        confirmPasswordError.value = '';
+      }
+    }
+
+    // Check if all fields are valid
+    isSignUpFormValid.value = nameTouched.value &&
+        emailTouched.value &&
+        contactTouched.value &&
+        passwordTouched.value &&
+        confirmPasswordTouched.value &&
+        nameError.value.isEmpty &&
         emailError.value.isEmpty &&
         contactError.value.isEmpty &&
         passwordError.value.isEmpty &&
-        confirmPasswordError.value.isEmpty &&
-        nameController.text.isNotEmpty &&
-        departmentController.text.isNotEmpty &&
-        emailController.text.isNotEmpty &&
-        contactController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty &&
-        confirmPasswordController.text.isNotEmpty) {
-      isSignUpFormValid.value = true;
-    } else {
-      isSignUpFormValid.value = false;
-    }
+        confirmPasswordError.value.isEmpty;
   }
 
   Future<void> signUp(NotificationServices notificationServices) async {
@@ -159,7 +146,6 @@ class FacultySignUpController extends GetxController {
         0.0,
         notificationServices,
         contact: contactController.text,
-        departmentCode: departmentController.text,
       );
     }
   }

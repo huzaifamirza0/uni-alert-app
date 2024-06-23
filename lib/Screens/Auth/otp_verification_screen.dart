@@ -17,9 +17,6 @@ class OTPVerificationScreen extends StatefulWidget {
   final double longitude;
   final String? rollNo;
   final String? contact;
-  final String? departmentCode;
-  final String? batch;
-  final String? description;
 
   OTPVerificationScreen({
     required this.verificationId,
@@ -34,9 +31,6 @@ class OTPVerificationScreen extends StatefulWidget {
     required this.deviceToken,
     this.rollNo,
     this.contact,
-    this.departmentCode,
-    this.batch,
-    this.description,
   });
 
   @override
@@ -70,8 +64,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
           widget.deviceToken,
           rollNo: widget.rollNo,
           contact: widget.contact,
-          departmentCode: widget.departmentCode,
-          batch: widget.batch,
         );
 
         ScaffoldMessenger.of(context).showSnackBar(

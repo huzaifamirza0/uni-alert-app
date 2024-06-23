@@ -49,6 +49,12 @@ class StudentSignUpController extends GetxController {
     return regex.hasMatch(rollNo);
   }
 
+  bool isValidContact(String contact) {
+    final regex = RegExp(r'^\+923\d{9}$');
+    return regex.hasMatch(contact);
+  }
+
+
   void validateForm() {
     // Validate name
     if (nameTouched.value) {
@@ -79,39 +85,13 @@ class StudentSignUpController extends GetxController {
 
     // Validate contact
     if (contactTouched.value) {
-      if (contactController.text.length >= 9) {
+      if (isValidContact(contactController.text)) {
         contactError.value = '';
       } else {
         contactError.value = 'Please enter a valid contact number';
       }
     }
 
-    // Validate department
-    if (departmentTouched.value) {
-      if (departmentController.text.isNotEmpty) {
-        departmentError.value = '';
-      } else {
-        departmentError.value = 'Please enter your department';
-      }
-    }
-
-    // Validate batch
-    if (batchTouched.value) {
-      if (batchController.text.isNotEmpty) {
-        batchError.value = '';
-      } else {
-        batchError.value = 'Please enter your batch';
-      }
-    }
-
-    // Validate semester
-    if (semesterTouched.value) {
-      if (semesterController.text.isNotEmpty) {
-        semesterError.value = '';
-      } else {
-        semesterError.value = 'Please enter your semester';
-      }
-    }
 
     // Validate password
     if (passwordTouched.value) {
@@ -136,18 +116,12 @@ class StudentSignUpController extends GetxController {
         rollNoTouched.value &&
         emailTouched.value &&
         contactTouched.value &&
-        departmentTouched.value &&
-        batchTouched.value &&
-        semesterTouched.value &&
         passwordTouched.value &&
         confirmPasswordTouched.value &&
         nameError.value.isEmpty &&
         rollNoError.value.isEmpty &&
         emailError.value.isEmpty &&
         contactError.value.isEmpty &&
-        departmentError.value.isEmpty &&
-        batchError.value.isEmpty &&
-        semesterError.value.isEmpty &&
         passwordError.value.isEmpty &&
         confirmPasswordError.value.isEmpty;
   }
@@ -166,8 +140,6 @@ class StudentSignUpController extends GetxController {
         notificationServices,
         rollNo: rollNoController.text,
         contact: contactController.text,
-        departmentCode: departmentController.text,
-        batch: batchController.text,
       );
       if (user != null) {
         Get.snackbar('Success','Created an account successfully', snackPosition: SnackPosition.BOTTOM);

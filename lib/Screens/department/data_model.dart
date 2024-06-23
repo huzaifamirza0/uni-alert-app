@@ -16,12 +16,14 @@ class Department {
 
 
 class Batch {
+  final String batchId;
   final String batch;
   final DateTime createdAt;
   final String name;
   final int userCount;
   final String picture;
   Batch({
+    required this.batchId,
     required this.batch,
     required this.createdAt,
     required this.name,

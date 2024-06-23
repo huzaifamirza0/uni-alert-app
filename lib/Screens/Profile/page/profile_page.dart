@@ -58,7 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   imagePath: user.imagePath,
                   onClicked: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => EditProfilePage(user: user)),
+                      MaterialPageRoute(builder: (context) => EditProfilePage(user: user, imageUrl: user.imagePath,)),
                     );
                   },
                 ),
@@ -141,51 +141,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ],
                       ),
                     ],
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.black45),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Column(
-                      children: [
-                        ProfileItem(
-                          'Personal Details',
-                          Icons.person,
-                          onTap: () {},
-                        ),
-                        ProfileItem(
-                          'My Department',
-                          Icons.school,
-                          onTap: () {},
-                        ),
-                        ProfileItem(
-                          'Settings',
-                          Icons.settings,
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.black45),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Column(
-                      children: [
-                        ProfileItem('FAQ', Icons.error),
-                        ProfileItem('Privacy Policy', Icons.security),
-                        ProfileItem('Terms & Condition', Icons.description),
-                      ],
-                    ),
                   ),
                 ),
                 buildAbout(user),

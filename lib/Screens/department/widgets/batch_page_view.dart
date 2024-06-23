@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:notification_app/Screens/chat_rooms/department_batch_chatroom.dart';
 
 import 'batch_widget.dart';
 import '../data_model.dart';
 
 class BatchPageView extends StatefulWidget {
   final List<Batch> batches;
+  final String departmentId;
+  final String userRole;
 
-  const BatchPageView({Key? key, required this.batches}) : super(key: key);
+  const BatchPageView({Key? key, required this.batches, required this.departmentId, required this.userRole}) : super(key: key);
 
   @override
   _BatchPageViewState createState() => _BatchPageViewState();
@@ -31,7 +35,11 @@ class _BatchPageViewState extends State<BatchPageView> {
             },
             itemCount: widget.batches.length,
             itemBuilder: (context, index) {
-              return BatchListItem(batch: widget.batches[index]);
+              return GestureDetector(
+                onTap: (){
+                  Get.to(BatchChatRoom(departmentId: widget.departmentId, batch: widget.batches[index], userRole: widget.userRole));
+                },
+                  child: BatchListItem(batch: widget.batches[index]));
             },
           ),
         ),

@@ -13,6 +13,28 @@ class _JoinDepartmentScreenState extends State<JoinDepartmentScreen> {
   final TextEditingController codeController = TextEditingController();
   String? departmentId;
   List<DocumentSnapshot> batches = [];
+  String? userRole;
+  List<dynamic> userDepartments = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserRole();
+    codeController.addListener(() {
+      _onCodeChanged(codeController.text);
+    });
+  }
+
+  void _fetchUserRole() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      setState(() {
+        userRole = userDoc['role'];
+        userDepartments = userDoc['departments'] ?? [];
+      });
+    }
+  }
 
   void _onCodeChanged(String code) async {
     if (code.isEmpty) {
@@ -34,7 +56,6 @@ class _JoinDepartmentScreenState extends State<JoinDepartmentScreen> {
         departmentId = department.id;
       });
 
-      // Fetch batches for the matched department
       QuerySnapshot batchSnapshot = await FirebaseFirestore.instance
           .collection('departments')
           .doc(departmentId)
@@ -55,49 +76,64 @@ class _JoinDepartmentScreenState extends State<JoinDepartmentScreen> {
   void _joinBatch(DocumentSnapshot batch) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'departmentCode': codeController.text,
-        'batchId': batch.id,
-      });
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
 
-      await FirebaseFirestore.instance
-          .collection('departments')
-          .doc(departmentId)
-          .update({
-        'userCount': FieldValue.increment(1),
-      });
+        if (userRole == 'student') {
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+            'departmentCode': codeController.text,
+            'batchId': batch.id,
+          });
+        } else if (userRole == 'faculty') {
+          var currentDepartment = userDepartments.firstWhere(
+                (dept) => dept['departmentId'] == departmentId,
+            orElse: () => null,
+          );
 
-      await FirebaseFirestore.instance
-          .collection('departments')
-          .doc(departmentId)
-          .collection('batches')
-          .doc(batch.id)
-          .update({
-        'userCount': FieldValue.increment(1),
-        'userIds': FieldValue.arrayUnion([user.uid]),
-      });
+          if (currentDepartment != null) {
+            currentDepartment['batches'].add(batch.id);
+          } else {
+            userDepartments.add({
+              'departmentId': departmentId,
+              'departmentCode': codeController.text,
+              'batches': [batch.id],
+            });
+          }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Joined batch successfully')),
-      );
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+            'departments': userDepartments,
+          });
+        }
 
-      Navigator.of(context).pop();
+        await FirebaseFirestore.instance.collection('departments').doc(departmentId).update({
+          'userCount': FieldValue.increment(1),
+        });
+
+        await FirebaseFirestore.instance.collection('departments').doc(departmentId).collection('batches').doc(batch.id).update({
+          'userCount': FieldValue.increment(1),
+          'userIds': FieldValue.arrayUnion([user.uid]),
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Joined batch successfully')),
+        );
+
+        Navigator.of(context).pop();
+      } catch (e) {
+        print("Error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error joining batch. Please try again.')),
+        );
+      }
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    codeController.addListener(() {
-      _onCodeChanged(codeController.text);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Join Department'),
+        title: const Text('Join Department'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -105,12 +141,12 @@ class _JoinDepartmentScreenState extends State<JoinDepartmentScreen> {
           children: [
             TextField(
               controller: codeController,
-              decoration: InputDecoration(hintText: 'Enter department code'),
+              decoration: const InputDecoration(hintText: 'Enter department code'),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Expanded(
               child: batches.isEmpty
-                  ? Center(child: Text('Enter a valid department code'))
+                  ? const Center(child: Text('Enter a valid department code'))
                   : ListView.builder(
                 itemCount: batches.length,
                 itemBuilder: (context, index) {

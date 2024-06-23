@@ -7,8 +7,8 @@ import 'package:notification_app/Screens/department/department_detail_screen.dar
 import 'package:notification_app/Screens/department/join_department_screen.dart';
 import 'package:notification_app/Screens/department/search_office.dart';
 import 'package:notification_app/Screens/department/widgets/batch_page_view.dart';
-import 'package:notification_app/Screens/messaging/department_chatRoom.dart';
-import '../messaging/admin_office_chat.dart';
+import 'package:notification_app/Screens/chat_rooms/department_chatRoom.dart';
+import '../chat_rooms/admin_office_chat.dart';
 import 'admin_office_detail.dart';
 import 'data_model.dart';
 import 'department_created_view.dart';
@@ -23,9 +23,7 @@ class DepartmentScreen extends StatefulWidget {
 }
 
 class _DepartmentScreenState extends State<DepartmentScreen> {
-  int _currentPage = 0;
   String selectedBatchId = '';
-  final PageController _pageController = PageController(initialPage: 0);
   final TextEditingController messageController = TextEditingController();
   final TextEditingController departmentCodeController = TextEditingController();
   User? user = FirebaseAuth.instance.currentUser;
@@ -310,6 +308,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
             List<Batch> batches = batchSnapshot.data?.docs.map((doc) {
               return Batch(
+                batchId: doc.id,
                 batch: doc['batch'] ?? '',
                 createdAt: (doc['createdAt'] as Timestamp).toDate(),
                 name: doc['name'] ?? '',
@@ -355,7 +354,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                     ),
                   )
                 else
-                  BatchPageView(batches: batches),
+                  BatchPageView(batches: batches, departmentId: '', userRole: role,),
                 const SizedBox(height: 10),
                 AuthButton(
                   onPressed: () => _createBatch(context, department.id),
@@ -528,6 +527,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
                         List<Batch> batches = batchSnapshot.data?.docs.map((doc) {
                           return Batch(
+                            batchId: doc.id,
                             batch: doc['batch'] ?? '',
                             createdAt: (doc['createdAt'] as Timestamp).toDate(),
                             name: doc['name'] ?? '',
@@ -553,7 +553,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                                 ),
                               )
                             else
-                              BatchPageView(batches: batches),
+                              BatchPageView(batches: batches, departmentId: departmentId, userRole: role,),
                             const SizedBox(height: 10),
                             AuthButton(
 
@@ -682,6 +682,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
                           List<Batch> batches = batchSnapshot.data?.docs.map((doc) {
                             return Batch(
+                              batchId: doc.id,
                               batch: doc['batch'] ?? '',
                               createdAt: (doc['createdAt'] as Timestamp).toDate(),
                               name: doc['name'] ?? '',
@@ -708,7 +709,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                                   ),
                                 )
                               else
-                                BatchPageView(batches: batches),
+                                BatchPageView(batches: batches, userRole: role, departmentId: department.id,),
                               const SizedBox(height: 10),
                               AuthButton(
                                 onPressed: () {
@@ -776,16 +777,15 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                     onPressed: () {
                       _createAdminOffice(context);
                     },
-                    child: const Text('Create Admin Office'),
                     style: ElevatedButton.styleFrom(
-                      primary: Colors.lightGreen,
-                      onPrimary: Colors.white,
+                      foregroundColor: Colors.white, backgroundColor: Colors.lightGreen,
                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                       textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
+                    child: const Text('Create Admin Office'),
                   ),
                 ],
               ),
