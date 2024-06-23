@@ -54,39 +54,36 @@ class EventCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8.0),
-                  child: event.imageUrl.isNotEmpty
-                      ? Image.network(
-                    event.imageUrl,
-                    height: 100,
-                    width: 100,
-                    fit: BoxFit.cover,
-                  )
-                      : const Center(child: Text('No Image')),
+                  child: _buildEventImage(event.imageUrl),
                 ),
-                const SizedBox(width: 16,),
-                Column(
-                  children: [
-                    Text(
-                      event.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-                    ),
-                    const SizedBox(height: 20,),
-                    Text(
-                      getCountdown(event.date),
-                      style: const TextStyle(
-                        fontSize: 14.0,
-                        color: Colors.redAccent,
-                        fontWeight: FontWeight.w500,
+                const SizedBox(width: 16.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        event.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.0,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8.0),
+                      Text(
+                        getCountdown(event.date),
+                        style: const TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 8.0),
-
             const SizedBox(height: 8.0),
             Text(
               DateFormat.yMMMd().format(event.date),
@@ -105,5 +102,23 @@ class EventCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildEventImage(String imageUrl) {
+    if (imageUrl.startsWith('http')) {
+      return Image.network(
+        imageUrl,
+        height: 100,
+        width: 100,
+        fit: BoxFit.cover,
+      );
+    } else {
+      return Image.asset(
+        imageUrl,
+        height: 100,
+        width: 100,
+        fit: BoxFit.cover,
+      );
+    }
   }
 }

@@ -1,9 +1,10 @@
-import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:io';
 
 import 'eventImage_widget.dart';
 
@@ -35,12 +36,12 @@ class _EventDialogState extends State<EventDialog> {
 
   Future<void> _createEvent() async {
     if (_formKey.currentState?.validate() ?? false) {
-      String imageUrl = '';
+      String imageUrl = 'assets/welcome.jpg'; // Default image path
       if (_eventImagePath.isNotEmpty && _eventImagePath.startsWith('/')) {
         final storageRef = FirebaseStorage.instance.ref().child('event_images').child('${DateTime.now().millisecondsSinceEpoch}.jpg');
         await storageRef.putFile(File(_eventImagePath));
         imageUrl = await storageRef.getDownloadURL();
-      } else {
+      } else if (_eventImagePath.isNotEmpty) {
         imageUrl = _eventImagePath;
       }
 
@@ -49,7 +50,7 @@ class _EventDialogState extends State<EventDialog> {
         'name': _eventNameController.text,
         'description': _eventDescriptionController.text,
         'date': Timestamp.fromDate(_selectedDate ?? DateTime.now()),
-        'image': imageUrl ?? 'assets/',
+        'image': imageUrl,
         'createdBy': widget.userRole,
       };
 
@@ -132,7 +133,9 @@ class _EventDialogState extends State<EventDialog> {
             children: [
               EventImageWidget(
                 imagePath: _eventImagePath.isNotEmpty ? _eventImagePath : 'assets/welcome.jpg',
-                onClicked: (){_showUploadOptions(context);},
+                onClicked: () {
+                  _showUploadOptions(context);
+                },
               ),
               const SizedBox(height: 10),
               TextFormField(

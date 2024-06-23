@@ -68,7 +68,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                       'code': departmentCode,
                       'userCount': 0,
                       'creationDate': Timestamp.now(),
-                      'picture': 'assets/logo.png',
+                      'picture': 'assets/bgImg.jpg',
                     });
                     await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
                       'departmentCode': departmentCode,

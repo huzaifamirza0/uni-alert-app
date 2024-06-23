@@ -65,7 +65,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 24),
                 buildName(user),
                 const SizedBox(height: 24),
-                Center(child: buildUpgradeButton()),
                 const SizedBox(height: 24),
                 NumbersWidget(),
                 const SizedBox(height: 24),
@@ -77,7 +76,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 18),
                 Padding(
-                  padding: const EdgeInsets.all(14.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -120,7 +119,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  '',//user.departmentCode,
+                                  user.departmentCode?? '',
                                   style: const TextStyle(fontSize: 14),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -164,11 +163,6 @@ class _ProfilePageState extends State<ProfilePage> {
         style: const TextStyle(color: Colors.grey),
       )
     ],
-  );
-
-  Widget buildUpgradeButton() => ButtonWidget(
-    text: 'Upgrade To PRO',
-    onClicked: () {},
   );
 
   Widget buildAbout(User user) => Container(

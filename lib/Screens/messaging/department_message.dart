@@ -23,6 +23,7 @@ class DepartmentMessages extends StatelessWidget {
           .doc(departmentId)
           .collection('messages')
           .orderBy('timestamp', descending: true)
+          .limit(5)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -76,7 +77,6 @@ class DepartmentMessages extends StatelessWidget {
               ? (snapshot.data!.data() as Map<String, dynamic>)['name'] ??
                   'Unknown sender'
               : 'Unknown sender';
-          print(snapshot.data!.data());
 
           return Container(
             margin: const EdgeInsets.only(bottom: 16.0),

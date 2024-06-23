@@ -76,6 +76,13 @@ dependencies:
   open_file: ^3.2.1
   rxdart: ^0.27.1
 
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logos.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

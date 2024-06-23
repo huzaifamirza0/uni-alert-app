@@ -231,7 +231,6 @@ class _DepartmentChatRoomState extends State<DepartmentChatRoom> {
         String senderName = snapshot.data != null
             ? (snapshot.data!.data() as Map<String, dynamic>)['name'] ?? 'Unknown sender'
             : 'Unknown sender';
-        print(snapshot.data!.data());
 
         return Container(
           width: size.width,

@@ -24,7 +24,7 @@ class UserPreferences {
       name: userData['name'] ?? 'Unknown',
       email: userData['email'] ?? 'unknown@example.com',
       about: userData['about'] ?? 'No about information provided',
-      imagePath: userData['imagePath'] ?? 'https://www.shareicon.net/data/512x512/2016/09/15/829459_man_512x512.png',
+      imagePath: userData['picture'],
       emergency: userData['emergency'] ?? false,
       latitude: (userData['latitude'] ?? 0.0).toDouble(),
       longitude: (userData['longitude'] ?? 0.0).toDouble(),
@@ -34,7 +34,6 @@ class UserPreferences {
       status: userData['status'],
       phone: userData['contact'],
     );
-
     return user;
   }
 }
