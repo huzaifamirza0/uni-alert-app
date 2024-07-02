@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 import 'eventImage_widget.dart';
@@ -37,12 +41,29 @@ class _EventDialogState extends State<EventDialog> {
   Future<void> _createEvent() async {
     if (_formKey.currentState?.validate() ?? false) {
       String imageUrl = 'assets/welcome.jpg'; // Default image path
-      if (_eventImagePath.isNotEmpty && _eventImagePath.startsWith('/')) {
-        final storageRef = FirebaseStorage.instance.ref().child('event_images').child('${DateTime.now().millisecondsSinceEpoch}.jpg');
-        await storageRef.putFile(File(_eventImagePath));
-        imageUrl = await storageRef.getDownloadURL();
-      } else if (_eventImagePath.isNotEmpty) {
-        imageUrl = _eventImagePath;
+      File? imageFile;
+
+      if (_eventImagePath.isNotEmpty) {
+        if (_eventImagePath.startsWith('/')) {
+          // Local file path
+          imageFile = File(_eventImagePath);
+        } else {
+          // Asset image path
+          ByteData byteData = await rootBundle.load(_eventImagePath);
+          Directory tempDir = await getTemporaryDirectory();
+          String tempPath = '${tempDir.path}/temp_asset_image.jpg';
+          imageFile = File(tempPath);
+          await imageFile.writeAsBytes(byteData.buffer.asUint8List());
+        }
+
+        if (imageFile != null) {
+          final storageRef = FirebaseStorage.instance
+              .ref()
+              .child('event_images')
+              .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+          await storageRef.putFile(imageFile);
+          imageUrl = await storageRef.getDownloadURL();
+        }
       }
 
       Map<String, dynamic> eventData = {
@@ -58,7 +79,6 @@ class _EventDialogState extends State<EventDialog> {
       Navigator.of(context).pop();
     }
   }
-
   void _showUploadOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,

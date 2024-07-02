@@ -32,7 +32,7 @@ class UserPreferences {
       deviceToken: userData['deviceToken'],
       role: userData['role'],
       status: userData['status'],
-      phone: userData['contact'],
+      phone: userData['contact']?? 'phone',
     );
     return user;
   }

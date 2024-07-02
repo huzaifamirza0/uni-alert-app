@@ -12,7 +12,20 @@
           "package_name": "com.example.notification_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "908015164698-4equf064tkubd3v6jiq5ue8nmsjorlql.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.notification_app",
+            "certificate_hash": "13dcc2362e73a47126d00e4fb3d3a16872a0571a"
+          }
+        },
+        {
+          "client_id": "908015164698-b9k0thpnnuu1vb44d7hf1lmsd4o1ugfn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBMHN-eoTEQPw9bZcKhhSw2zCe0RsRpObk"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "908015164698-b9k0thpnnuu1vb44d7hf1lmsd4o1ugfn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "908015164698-gfr2pgbbvdabqf6jucrjh55bg9rvmble.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.notificationApp"
+              }
+            }
+          ]
         }
       }
     }

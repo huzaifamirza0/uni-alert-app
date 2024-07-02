@@ -56,9 +56,13 @@ class _SubscribedMessagesGridState extends State<SubscribedMessagesGrid> {
           return const Center(child: Text('Error loading sender info'));
         }
 
-        String senderName = snapshot.data != null
-            ? (snapshot.data!.data() as Map<String, dynamic>)['name'] ?? 'Unknown sender'
-            : 'Unknown sender';
+        String senderName = 'Anonymous';
+        if (snapshot.hasData && snapshot.data!.exists) {
+          var data = snapshot.data!.data() as Map<String, dynamic>?;
+          if (data != null) {
+            senderName = data['name'] ?? 'Anonymous';
+          }
+        }
 
         return GestureDetector(
           onLongPress: () {
@@ -129,7 +133,7 @@ class _SubscribedMessagesGridState extends State<SubscribedMessagesGrid> {
   @override
   Widget build(BuildContext context) {
     if (_messageStream == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: Text('Subscribe to an admin office to see messages.'));
     }
 
     return StreamBuilder<List<QuerySnapshot>>(

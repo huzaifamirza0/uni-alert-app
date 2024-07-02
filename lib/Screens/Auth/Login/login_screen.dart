@@ -1,96 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:notification_app/Screens/Auth/role_select.dart';
-
-import '../../../Components/CustomButton.dart';
+import 'package:notification_app/Services/notification_services.dart';
 import '../../../Components/auth_button.dart';
-import '../../../Components/text_fields.dart';
-import '../AuthServices/adminOffice_controllers_auth.dart';
+import '../AuthServices/auth_service.dart';
 
 class SignInScreen extends StatelessWidget {
-  final SignInController signInController = Get.put(SignInController());
+  final AuthService _authService = AuthService();
+  final NotificationServices _notificationServices = NotificationServices();
+
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      backgroundColor: Colors.lightGreen,
+      backgroundColor: Colors.white,
       body: Column(
         children: <Widget>[
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Container(
               width: double.infinity,
-              color: Colors.lightGreen,
+              decoration: const BoxDecoration(
+                color: Colors.lightGreen,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(22),
+                  bottomRight: Radius.circular(22),
+                ),
+              ),
               child: const Center(
-                child: Text('Welcome to UniAlert',
-                    style: TextStyle(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white)),
+                child: Text(
+                  'Welcome to UniAlert',
+                  style: TextStyle(
+                    fontSize: 28.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ),
           Expanded(
-            flex: 5,
+            flex: 7,
             child: Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(22),
-                    topRight: Radius.circular(22)),
+                  topLeft: Radius.circular(22),
+                  topRight: Radius.circular(22),
+                ),
               ),
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Obx(() => CustomTextField(
-                        controller: signInController.emailController,
-                        labelText: 'Email',
-                        preIcon: const Icon(Icons.person, color: Colors.lightGreen,),
-                        errorText: signInController.emailTouched.value
-                            ? signInController.emailError.value.isNotEmpty
-                            ? signInController.emailError.value
-                            : null
-                            : null,
-                        onChanged: (_) => signInController.setEmailTouched(true),
-                      )),
-                      const SizedBox(height: 12),
-                      Obx(() => CustomTextField(
-                        controller: signInController.passwordController,
-                        labelText: 'Password',
-                        preIcon: const Icon(Icons.lock, color: Colors.lightGreen,),
-                        errorText: signInController.passwordTouched.value
-                            ? signInController.passwordError.value.isNotEmpty
-                            ? signInController.passwordError.value
-                            : null
-                            : null,
-                        obscureText: signInController.obscurePassword.value,
-                        onPressed: signInController.togglePasswordVisibility,
-                        onChanged: (_) => signInController.setPasswordTouched(true),
-                      )),
-                      const SizedBox(height: 5,),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: GestureDetector(onTap: (){},
-                            child: Text('Forgot Password', style: TextStyle(color: Colors.red),)),
-                      ),
-                      const SizedBox(height: 24),
-                      Obx(() => SizedBox(
+                      const SizedBox(height: 20),
+                      SizedBox(
                         height: 50,
                         width: MediaQuery.of(context).size.width,
-                        child: CustomButton(
-                          color: Colors.lightGreen,
-                          onPressed: signInController.isSignInFormValid.value
-                              ? signInController.signIn
-                              : null,
-                          text: 'Sign In',
+                        child: AuthButton(
+                          iconColor: Colors.lightGreen,
+                          borderColor: Colors.black,
+                          textColor: Colors.black,
+                          text: 'Sign In with Google',
+                          iconAsset: 'assets/google.svg',
+                          color: Colors.white,
+                          onPressed: () async {
+                            await _authService.signInWithGoogle();
+                          },
                         ),
-                      )),
+                      ),
+                      const SizedBox(height: 24),
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -102,8 +85,11 @@ class SignInScreen extends StatelessWidget {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 22),
-                            child: Text('Or continue with'),
+                            padding: EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(
+                              'OR',
+                              style: TextStyle(color: Colors.grey),
+                            ),
                           ),
                           Expanded(
                             child: Divider(
@@ -113,28 +99,28 @@ class SignInScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          AuthButton(
-                            text: 'Continue with Google',
-                            icon: Icons.g_translate,
-                            color: Colors.white,
-                            onPressed: () {
-                              // Handle the button press
-                            },
-                            iconColor: Colors.black, textColor: Colors.black, borderColor: Colors.black,
-                          ),
-                        ],
+                      SizedBox(height: screenHeight * 0.05),
+                      const Text(
+                        'Sign up with your University Email',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.lightGreen,
+                        ),
                       ),
-                      SizedBox(height: screenHeight * 0.09,),
+                      SizedBox(height: screenHeight * 0.05),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Don't have an account?"),
+                          const Text("Don't have an account?", style: TextStyle(fontSize: 16),),
                           GestureDetector(
-                              onTap: (){Get.to(RoleSelectionScreen());},
-                              child: const Text("Sign Up", style: TextStyle(color: Colors.blue, fontSize: 16),)
+                            onTap: () {
+                              Get.to(RoleSelectionScreen());
+                            },
+                            child: const Text(
+                              " Sign Up",
+                              style: TextStyle(color: Colors.green, fontSize: 18),
+                            ),
                           ),
                         ],
                       ),

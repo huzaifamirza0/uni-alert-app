@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:notification_app/Screens/Auth/Signup/signup_screen.dart';
 
 import '../Auth/Login/login_screen.dart';
 
@@ -49,7 +50,7 @@ class _SliderScreenState extends State<SliderScreen> {
             ],
           ),
           Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.1,
+            bottom: MediaQuery.of(context).size.height * 0.13,
             left: MediaQuery.of(context).size.width * 0.4,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -122,7 +123,7 @@ class _SliderScreenState extends State<SliderScreen> {
               children: <Widget>[
                 TextButton(
                   onPressed: () {
-                    Get.to(SignInScreen());
+                    Get.to(() => SignInScreen());
                   },
                   child: Container(
                     width: screenWidth * 0.9,
@@ -143,26 +144,6 @@ class _SliderScreenState extends State<SliderScreen> {
                       ),
                     ),
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Don\'t have an account? ',
-                      style: TextStyle(
-                          color: Colors.black
-                      ),
-                    ),
-                    GestureDetector(
-                      //onTap: (){Get.to(() => SignInScreen());},
-                      child: const Text(
-                        'Register',
-                        style: TextStyle(
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),

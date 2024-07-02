@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AuthButton extends StatelessWidget {
   final String text;
   final Color textColor;
-  final IconData icon;
+  final String? iconAsset;
+  final IconData? icon;
   final Color iconColor;
   final Color color;
   final Color borderColor;
@@ -12,18 +14,26 @@ class AuthButton extends StatelessWidget {
   const AuthButton({
     Key? key,
     required this.text,
-    required this.icon,
+    this.iconAsset,
+    this.icon,
     required this.color,
     required this.borderColor,
     required this.iconColor,
     required this.textColor,
     required this.onPressed,
-  }) : super(key: key);
+  }) : assert(iconAsset != null || icon != null, 'Either iconAsset or icon must be provided'),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
-      icon: Icon(icon, color: iconColor),
+      icon: iconAsset != null
+          ? SvgPicture.asset(
+        iconAsset!,
+        height: 24,
+        width: 24,
+      )
+          : Icon(icon, color: iconColor),
       label: Text(text, style: TextStyle(color: textColor, fontSize: 16)),
       style: ElevatedButton.styleFrom(
         side: BorderSide(color: borderColor, width: 2),

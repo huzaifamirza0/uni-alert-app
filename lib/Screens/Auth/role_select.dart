@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../Components/CustomButton.dart';
-import 'Signup/adminOffice_signup.dart';
-import 'Signup/faculty_signup.dart';
-import 'Signup/hod_signup.dart';
-import 'Signup/student_signup.dart';
-
-
-enum UserRole { student, faculty, hod, adminOffice }
+import 'AuthServices/auth_service.dart';
+import 'Signup/signup_screen.dart';
 
 class RoleSelectionController extends GetxController {
   var selectedRole = UserRole.student.obs;
@@ -56,9 +50,6 @@ class RoleSelectionScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: isSelected ? Colors.lightGreen : Colors.white,
                           borderRadius: BorderRadius.circular(26.0),
-                          // border: Border.all(
-                          //   color: isSelected ? Colors.lightGreen : Colors.grey,
-                          // ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.grey.withOpacity(0.5),
@@ -89,24 +80,11 @@ class RoleSelectionScreen extends StatelessWidget {
               width: MediaQuery.of(context).size.width * 0.7,
               child: CustomButton(
                 color: Colors.lightGreen,
-                  onPressed: () {
-                    switch (roleController.selectedRole.value) {
-                      case UserRole.student:
-                        Get.to(() => StudentSignUpScreen());
-                        break;
-                      case UserRole.faculty:
-                        Get.to(() => FacultySignUpScreen());
-                        break;
-                      case UserRole.hod:
-                        Get.to(() => HodSignUpScreen());
-                        break;
-                      case UserRole.adminOffice:
-                        Get.to(() => AdminOfficeSignUpScreen());
-                        break;
-                    }
-                  },
-                  text: 'Continue',
-                )
+                onPressed: () {
+                  Get.to(() => SignUpScreen(role: roleController.selectedRole.value));
+                },
+                text: 'Continue',
+              ),
             ),
           ],
         ),

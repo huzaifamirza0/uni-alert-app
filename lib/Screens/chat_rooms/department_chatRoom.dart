@@ -233,106 +233,93 @@ class _DepartmentChatRoomState extends State<DepartmentChatRoom> {
             : 'Unknown sender';
 
         return Container(
-          width: size.width,
-          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+          padding: const EdgeInsets.all(10),
           child: Row(
-            mainAxisAlignment: senderId == _auth.currentUser?.uid
+            mainAxisAlignment: map['senderId'] == _auth.currentUser!.uid
                 ? MainAxisAlignment.end
                 : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              if (map['senderId'] != _auth.currentUser!.uid) ...[
+                CircleAvatar(
+                  radius: 15,
+                  child: Text(senderName[0]),
+                ),
+                const SizedBox(width: 10),
+              ],
               Flexible(
                 child: Container(
-                  constraints: BoxConstraints(maxWidth: size.width * 0.75),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: senderId == _auth.currentUser?.uid
+                    color: map['senderId'] == _auth.currentUser!.uid
                         ? Colors.lightGreen
-                        : Colors.grey[800],
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(12),
-                      topRight: const Radius.circular(12),
-                      bottomLeft: senderId == _auth.currentUser?.uid
-                          ? const Radius.circular(12)
-                          : const Radius.circular(0),
-                      bottomRight: senderId != _auth.currentUser?.uid
-                          ? const Radius.circular(12)
-                          : const Radius.circular(0),
-                    ),
+                        : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: senderId == _auth.currentUser?.uid
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          senderName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        senderName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      if (map['content'] != null && map['content'] != '')
+                        Text(map['content']),
+                      if (fileUrl.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        GestureDetector(
+                          onTap: () async {
+                            // Download and open the file
+                            Directory tempDir = await getTemporaryDirectory();
+                            String tempPath = tempDir.path;
+                            String filePath = '$tempPath/$fileName';
+
+                            // Download the file
+                            try {
+                              var response = await http.get(Uri.parse(fileUrl));
+                              var file = File(filePath);
+                              await file.writeAsBytes(response.bodyBytes);
+
+                              // Open the file
+                              await OpenFile.open(filePath);
+                            } catch (e) {
+                              print('Error opening file: $e');
+                            }
+                          },
+                          child: Text(
+                            'File: $fileName',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
                         ),
-                        if (map['content'] != null && map['content'].isNotEmpty)
-                          TimestampedChatMessage(
-                            sendingStatusIcon: Icon(Icons.check),
-                            text: map['content'],
-                            sentAt: time,
-                            style: const TextStyle(color: Colors.white, fontSize: 16),
-                            sentAtStyle: const TextStyle(color: Colors.white, fontSize: 12),
-                            maxLines: 3,
-                            delimiter: '\u2026',
-                            viewMoreText: 'showMore',
-                            showMoreTextStyle: const TextStyle(color: Colors.blue),
-                          ),
-                        if (imageUrl.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Image.network(imageUrl),
-                                Text(
-                                  time,
-                                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
-                        if (fileUrl.isNotEmpty)
-                          GestureDetector(
-                            onTap: () => _openFile(fileUrl),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.insert_drive_file,
-                                      color: Colors.blue,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      fileName,
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  time,
-                                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
                       ],
-                    ),
+                      if (imageUrl.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          width: 150,
+                          height: 150,
+                        ),
+                      ],
+                      const SizedBox(height: 4),
+                      Text(
+                        time,
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                    ],
                   ),
                 ),
               ),
+              if (map['senderId'] == _auth.currentUser!.uid) ...[
+                const SizedBox(width: 10),
+                CircleAvatar(
+                  radius: 15,
+                  child: Text(senderName[0]),
+                ),
+              ],
             ],
           ),
         );

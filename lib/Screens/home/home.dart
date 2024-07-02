@@ -1,7 +1,12 @@
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:chat_message_timestamp/chat_message_timestamp.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../Services/logOutDialog.dart';
 import '../Profile/page/profile_page.dart';
 import '../messaging/admin_office_message.dart';
@@ -40,10 +45,13 @@ class HomePage extends StatelessWidget {
           toolbarHeight: 76,
           toolbarOpacity: 0.7,
           backgroundColor: Colors.lightGreen.shade300,
-          leading: IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white,),
-            onPressed: () {
-              _scaffoldKey.currentState!.openDrawer();
+          leading: Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white,),
+                onPressed: () { Scaffold.of(context).openDrawer(); },
+                tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+              );
             },
           ),
           title: Text(
@@ -109,14 +117,20 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHorizontalSlider(BuildContext context,
-      Stream<QuerySnapshot> messageStream) {
+  Widget _buildHorizontalSlider(BuildContext context, Stream<QuerySnapshot> messageStream) {
     return StreamBuilder<QuerySnapshot>(
       stream: messageStream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error loading messages'));
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No messages available'));
+        }
+
         var messages = snapshot.data!.docs;
         return SizedBox(
           height: 170.0,
@@ -127,7 +141,7 @@ class HomePage extends StatelessWidget {
               var message = messages[index];
               return Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: _messageItem(context, message),
+                child: messageWidget(context, message),
               );
             },
           ),
@@ -136,8 +150,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHorizontalSliderEvents(BuildContext context,
-      Stream<QuerySnapshot> eventStream) {
+  Widget _buildHorizontalSliderEvents(BuildContext context, Stream<QuerySnapshot> eventStream) {
     return StreamBuilder<QuerySnapshot>(
       stream: eventStream,
       builder: (context, snapshot) {
@@ -211,72 +224,144 @@ class HomePage extends StatelessWidget {
   }
 
 
-  Widget _messageItem(BuildContext context, DocumentSnapshot message) {
-    Map<String, dynamic> map = message.data() as Map<String, dynamic>;
+  Widget messageWidget(BuildContext context, DocumentSnapshot map) {
     Timestamp? timestamp = map['timestamp'] as Timestamp?;
-    String time = timestamp != null
-        ? _formatTime(timestamp.toDate())
-        : 'Unknown';
-    String senderName = map['sender'] ?? 'Unknown sender';
-    String messageContent = map['message'] ?? '';
+    String time = timestamp != null ? _formatTime(timestamp.toDate()) : 'Unknown';
+    String fileName = map['fileName'] ?? 'Unknown file';
+    String fileUrl = map['fileUrl'] ?? '';
+    String imageUrl = map['imageUrl'] ?? '';
+    String senderId = map['senderId'] ?? 'Unknown sender';
+    String messageContent = map['content'] ?? '';
 
-    return GestureDetector(
-      onLongPress: () {
-        _showMessageDialog(context, senderName, messageContent, time);
-      },
-      child: Container(
-        width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.68,
-        margin: const EdgeInsets.only(bottom: 16.0),
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Flexible(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                senderName,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
+    return FutureBuilder<DocumentSnapshot>(
+      future: _firestore.collection('users').doc(senderId).get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error loading sender info'));
+        }
+
+        String senderName = snapshot.data != null
+            ? (snapshot.data!.data() as Map<String, dynamic>)['name'] ?? 'Unknown sender'
+            : 'Unknown sender';
+
+        return GestureDetector(
+          onLongPress: () {
+            _showMessageDialog(context, senderName, messageContent, time);
+          },
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.68,
+            margin: const EdgeInsets.only(bottom: 16.0),
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
                 ),
-              ),
-              if (map['message'] != null && map['message'].isNotEmpty)
-                GestureDetector(
-                  onTap: () =>
-                      _showMessageDialog(
-                          context, senderName, map['message'], time),
-                  child: TimestampedChatMessage(
-                    sendingStatusIcon: const Icon(
-                      Icons.check, color: Colors.lightGreen,),
-                    text: _truncateMessage(map['message']),
-                    sentAt: time,
-                    style: const TextStyle(color: Colors.black, fontSize: 16),
-                    sentAtStyle: const TextStyle(
-                        color: Colors.black, fontSize: 12),
-                    maxLines: 3,
-                    delimiter: '\u2026',
-                    viewMoreText: 'showMore',
-                    showMoreTextStyle: const TextStyle(color: Colors.blue),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: map['senderId'] == _auth.currentUser!.uid
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
+              children: [
+                if (map['senderId'] != _auth.currentUser!.uid) ...[
+                  CircleAvatar(
+                    radius: 15,
+                    child: Text(senderName[0]),
+                  ),
+                  const SizedBox(width: 10),
+                ],
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        senderName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      if (messageContent.isNotEmpty)
+                        GestureDetector(
+                          onTap: () => _showMessageDialog(context, senderName, messageContent, time),
+                          child: TimestampedChatMessage(
+                            sendingStatusIcon: const Icon(Icons.check, color: Colors.lightGreen),
+                            text: _truncateMessage(messageContent),
+                            sentAt: time,
+                            style: const TextStyle(color: Colors.black, fontSize: 16),
+                            sentAtStyle: const TextStyle(color: Colors.black, fontSize: 12),
+                            maxLines: 3,
+                            delimiter: '\u2026',
+                            viewMoreText: 'showMore',
+                            showMoreTextStyle: const TextStyle(color: Colors.blue),
+                          ),
+                        ),
+                      if (fileUrl.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        GestureDetector(
+                          onTap: () async {
+                            Uri fileUri = Uri.parse(fileUrl);
+                            if (await canLaunchUrl(fileUri)) {
+                              if (fileUri.isScheme('http') || fileUri.isScheme('https')) {
+                                await launchUrl(fileUri);
+                              } else {
+                                Directory tempDir = await getTemporaryDirectory();
+                                String tempPath = tempDir.path;
+                                String filePath = '$tempPath/$fileName';
+
+                                try {
+                                  var response = await http.get(fileUri);
+                                  var file = File(filePath);
+                                  await file.writeAsBytes(response.bodyBytes);
+                                  await OpenFile.open(filePath);
+                                } catch (e) {
+                                  print('Error opening file: $e');
+                                }
+                              }
+                            } else {
+                              print('Could not launch $fileUrl');
+                            }
+                          },
+                          child: Text(
+                            'File: $fileName',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (imageUrl.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          width: 150,
+                          height: 150,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-            ],
+                if (map['senderId'] == _auth.currentUser!.uid) ...[
+                  const SizedBox(width: 10),
+                  CircleAvatar(
+                    radius: 15,
+                    child: Text(senderName[0]),
+                  ),
+                ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -287,34 +372,17 @@ class HomePage extends StatelessWidget {
     return '$hour:$minute $period';
   }
 
-  String _truncateMessage(String message, {int maxLength = 66}) {
-    if (message.length <= maxLength) {
-      return message;
-    } else {
-      return '${message.substring(0, maxLength)}... see more';
-    }
-  }
-
-  void _showMessageDialog(BuildContext context, String senderName,
-      String messageContent, String time) {
+  void _showMessageDialog(BuildContext context, String senderName, String messageContent, String time) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (BuildContext context) {
         return AlertDialog(
           title: Text(senderName),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Sent at: $time',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              const SizedBox(height: 10),
-              Text(messageContent),
-            ],
-          ),
-          actions: [
+          content: Text(messageContent),
+          actions: <Widget>[
+            Text(time, style: const TextStyle(fontSize: 10)),
             TextButton(
-              child: const Text('Close'),
+              child: const Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -323,5 +391,9 @@ class HomePage extends StatelessWidget {
         );
       },
     );
+  }
+
+  String _truncateMessage(String message, {int maxLength = 100}) {
+    return message.length > maxLength ? message.substring(0, maxLength) + '...' : message;
   }
 }

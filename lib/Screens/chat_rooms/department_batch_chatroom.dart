@@ -1,4 +1,3 @@
-import 'package:chat_message_timestamp/chat_message_timestamp.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,6 +10,7 @@ import 'package:notification_app/Screens/department/data_model.dart';
 import 'package:path/path.dart' as path;
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BatchChatRoom extends StatefulWidget {
   final String departmentId;
@@ -21,7 +21,10 @@ class BatchChatRoom extends StatefulWidget {
     required this.departmentId,
     required this.batch,
     required this.userRole,
-  });
+  }) {
+    assert(departmentId.isNotEmpty, 'Department ID must not be empty');
+    assert(batch.batchId.isNotEmpty, 'Batch ID must not be empty');
+  }
 
   @override
   _BatchChatRoomState createState() => _BatchChatRoomState();
@@ -33,11 +36,8 @@ class _BatchChatRoomState extends State<BatchChatRoom> {
   FirebaseAuth _auth = FirebaseAuth.instance;
   FirebaseStorage _storage = FirebaseStorage.instance;
 
-  void onSendMessage(
-      String? imageUrl, String? fileUrl, String? fileName) async {
-    if (messageController.text.isNotEmpty ||
-        imageUrl != null ||
-        fileUrl != null) {
+  void onSendMessage(String? imageUrl, String? fileUrl, String? fileName) async {
+    if (messageController.text.isNotEmpty || imageUrl != null || fileUrl != null) {
       Map<String, dynamic> messages = {
         'senderId': _auth.currentUser!.uid,
         'content': messageController.text,
@@ -67,8 +67,7 @@ class _BatchChatRoomState extends State<BatchChatRoom> {
         File file = File(result.files.single.path!);
         String fileName = path.basename(file.path);
         String fileExtension = path.extension(file.path).toLowerCase();
-        String storagePath =
-            'uploads/${DateTime.now().millisecondsSinceEpoch}$fileExtension';
+        String storagePath = 'uploads/${DateTime.now().millisecondsSinceEpoch}$fileExtension';
         UploadTask task = _storage.ref(storagePath).putFile(file);
 
         TaskSnapshot snapshot = await task;
@@ -130,8 +129,7 @@ class _BatchChatRoomState extends State<BatchChatRoom> {
                 return ListView(
                   reverse: true,
                   children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                    Map<String, dynamic> map =
-                    document.data() as Map<String, dynamic>;
+                    Map<String, dynamic> map = document.data() as Map<String, dynamic>;
                     return messages(size, map);
                   }).toList(),
                 );
@@ -241,99 +239,103 @@ class _BatchChatRoomState extends State<BatchChatRoom> {
             : 'Unknown sender';
 
         return Container(
-          width: size.width,
-          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+          padding: const EdgeInsets.all(10),
           child: Row(
-            mainAxisAlignment: senderId == _auth.currentUser?.uid
+            mainAxisAlignment: map['senderId'] == _auth.currentUser!.uid
                 ? MainAxisAlignment.end
                 : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              if (map['senderId'] != _auth.currentUser!.uid) ...[
+                CircleAvatar(
+                  radius: 15,
+                  child: Text(senderName[0]),
+                ),
+                const SizedBox(width: 10),
+              ],
               Flexible(
                 child: Container(
-                  constraints: BoxConstraints(maxWidth: size.width * 0.75),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: senderId == _auth.currentUser?.uid
+                    color: map['senderId'] == _auth.currentUser!.uid
                         ? Colors.lightGreen
-                        : Colors.grey[800],
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(12),
-                      topRight: const Radius.circular(12),
-                      bottomLeft: senderId == _auth.currentUser?.uid
-                          ? const Radius.circular(12)
-                          : const Radius.circular(0),
-                      bottomRight: senderId != _auth.currentUser?.uid
-                          ? const Radius.circular(12)
-                          : const Radius.circular(0),
-                    ),
+                        : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: senderId == _auth.currentUser?.uid
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          senderName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        senderName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      if (map['content'] != null && map['content'] != '')
+                        Text(map['content']),
+                      if (fileUrl.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        GestureDetector(
+                          onTap: () async {
+                            Uri fileUri = Uri.parse(fileUrl);
+                            if (await canLaunchUrl(fileUri)) {
+                              if (fileUri.isScheme('http') || fileUri.isScheme('https')) {
+                                await launchUrl(fileUri);
+                              } else {
+                                Directory tempDir = await getTemporaryDirectory();
+                                String tempPath = tempDir.path;
+                                String filePath = '$tempPath/$fileName';
+
+                                try {
+                                  var response = await http.get(fileUri);
+                                  var file = File(filePath);
+                                  await file.writeAsBytes(response.bodyBytes);
+                                  await OpenFile.open(filePath);
+                                } catch (e) {
+                                  print('Error opening file: $e');
+                                }
+                              }
+                            } else {
+                              print('Could not launch $fileUrl');
+                            }
+                          },
+                          child: Text(
+                            'File: $fileName',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
                         ),
-                        if (map['content'] != null && map['content'].isNotEmpty)
-                          TimestampedChatMessage(
-                            sendingStatusIcon: Icon(Icons.check),
-                            text: map['content'],
-                            sentAt: time,
-                            style: const TextStyle(color: Colors.white, fontSize: 16),
-                            sentAtStyle: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                        if (imageUrl.isNotEmpty)
-                          Image.network(imageUrl),
-                        if (fileUrl.isNotEmpty)
-                          GestureDetector(
-                            onTap: () async {
-                              await _downloadAndOpenFile(fileUrl, fileName);
-                            },
-                            child: Column(
-                              children: [
-                                const Icon(Icons.file_present),
-                                Text(
-                                  fileName,
-                                  style: const TextStyle(
-                                    color: Colors.blue,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                       ],
-                    ),
+                      if (imageUrl.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          width: 150,
+                          height: 150,
+                        ),
+                      ],
+                      const SizedBox(height: 4),
+                      Text(
+                        time,
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                    ],
                   ),
                 ),
               ),
+              if (map['senderId'] == _auth.currentUser!.uid) ...[
+                const SizedBox(width: 10),
+                CircleAvatar(
+                  radius: 15,
+                  child: Text(senderName[0]),
+                ),
+              ],
             ],
           ),
         );
       },
     );
-  }
-
-  Future<void> _downloadAndOpenFile(String url, String fileName) async {
-    try {
-      final http.Response response = await http.get(Uri.parse(url));
-      final Directory tempDir = await getTemporaryDirectory();
-      final File tempFile = File('${tempDir.path}/$fileName');
-      await tempFile.writeAsBytes(response.bodyBytes);
-      await OpenFile.open(tempFile.path);
-    } catch (e) {
-      print('Error downloading or opening file: $e');
-    }
   }
 
   String _formatTime(DateTime dateTime) {

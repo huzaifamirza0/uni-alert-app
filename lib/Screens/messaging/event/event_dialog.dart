@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'event_model.dart';
 
 class EventDetailDialog extends StatelessWidget {
   final Event event;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   EventDetailDialog({required this.event});
 
@@ -27,6 +30,13 @@ class EventDetailDialog extends StatelessWidget {
     }
   }
 
+  Future<void> _deleteEvent(BuildContext context) async {
+    await FirebaseFirestore.instance.collection('events').doc(event.id).delete();
+    Navigator.of(context).pop(); // Close the detail dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Event deleted successfully')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +63,12 @@ class EventDetailDialog extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16.0),
                   child: event.imageUrl.isNotEmpty
+                      ? event.imageUrl.startsWith('http')
                       ? Image.network(
+                    event.imageUrl,
+                    fit: BoxFit.cover,
+                  )
+                      : Image.asset(
                     event.imageUrl,
                     fit: BoxFit.cover,
                   )
@@ -84,6 +99,13 @@ class EventDetailDialog extends StatelessWidget {
         ),
       ),
       actions: [
+        if (_auth.currentUser?.uid == event.creatorId) ...[
+          TextButton(
+            onPressed: () => _deleteEvent(context),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Close'),

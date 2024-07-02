@@ -354,7 +354,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                     ),
                   )
                 else
-                  BatchPageView(batches: batches, departmentId: '', userRole: role,),
+                  BatchPageView(batches: batches, departmentId: department.id, userRole: role,),
                 const SizedBox(height: 10),
                 AuthButton(
                   onPressed: () => _createBatch(context, department.id),
