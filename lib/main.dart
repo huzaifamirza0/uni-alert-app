@@ -8,6 +8,7 @@ import 'Screens/Auth/AuthServices/auth_service.dart';
 import 'Screens/Map/emergencyIdProvider.dart';
 import 'Screens/Map/emergency_state.dart';
 import 'Screens/splash/splash_slides.dart';
+import 'fake.dart';
 import 'firebase_options.dart';
 
 void main() async {

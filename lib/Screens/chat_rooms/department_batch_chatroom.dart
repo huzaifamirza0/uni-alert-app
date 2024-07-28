@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:notification_app/Screens/chat_rooms/message_widgget.dart';
 import 'package:notification_app/Screens/department/data_model.dart';
 import 'package:path/path.dart' as path;
 import 'package:open_file/open_file.dart';
@@ -130,7 +131,7 @@ class _BatchChatRoomState extends State<BatchChatRoom> {
                   reverse: true,
                   children: snapshot.data!.docs.map((DocumentSnapshot document) {
                     Map<String, dynamic> map = document.data() as Map<String, dynamic>;
-                    return messages(size, map);
+                    return MessageWidget(size: size, map: map);
                   }).toList(),
                 );
               },
@@ -214,133 +215,5 @@ class _BatchChatRoomState extends State<BatchChatRoom> {
         ],
       ),
     );
-  }
-
-  Widget messages(Size size, Map<String, dynamic> map) {
-    Timestamp? timestamp = map['timestamp'] as Timestamp?;
-    String time = timestamp != null ? _formatTime(timestamp.toDate()) : 'Unknown';
-    String fileName = map['fileName'] ?? 'Unknown file';
-    String fileUrl = map['fileUrl'] ?? '';
-    String imageUrl = map['imageUrl'] ?? '';
-    String senderId = map['senderId'] ?? 'Unknown sender';
-
-    return FutureBuilder<DocumentSnapshot>(
-      future: _firestore.collection('users').doc(senderId).get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return const Center(child: Text('Error loading sender info'));
-        }
-
-        String senderName = snapshot.data != null
-            ? (snapshot.data!.data() as Map<String, dynamic>)['name'] ?? 'Unknown sender'
-            : 'Unknown sender';
-
-        return Container(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            mainAxisAlignment: map['senderId'] == _auth.currentUser!.uid
-                ? MainAxisAlignment.end
-                : MainAxisAlignment.start,
-            children: [
-              if (map['senderId'] != _auth.currentUser!.uid) ...[
-                CircleAvatar(
-                  radius: 15,
-                  child: Text(senderName[0]),
-                ),
-                const SizedBox(width: 10),
-              ],
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: map['senderId'] == _auth.currentUser!.uid
-                        ? Colors.lightGreen
-                        : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        senderName,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      if (map['content'] != null && map['content'] != '')
-                        Text(map['content']),
-                      if (fileUrl.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        GestureDetector(
-                          onTap: () async {
-                            Uri fileUri = Uri.parse(fileUrl);
-                            if (await canLaunchUrl(fileUri)) {
-                              if (fileUri.isScheme('http') || fileUri.isScheme('https')) {
-                                await launchUrl(fileUri);
-                              } else {
-                                Directory tempDir = await getTemporaryDirectory();
-                                String tempPath = tempDir.path;
-                                String filePath = '$tempPath/$fileName';
-
-                                try {
-                                  var response = await http.get(fileUri);
-                                  var file = File(filePath);
-                                  await file.writeAsBytes(response.bodyBytes);
-                                  await OpenFile.open(filePath);
-                                } catch (e) {
-                                  print('Error opening file: $e');
-                                }
-                              }
-                            } else {
-                              print('Could not launch $fileUrl');
-                            }
-                          },
-                          child: Text(
-                            'File: $fileName',
-                            style: const TextStyle(
-                              color: Colors.blue,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ],
-                      if (imageUrl.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          width: 150,
-                          height: 150,
-                        ),
-                      ],
-                      const SizedBox(height: 4),
-                      Text(
-                        time,
-                        style: const TextStyle(fontSize: 10),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (map['senderId'] == _auth.currentUser!.uid) ...[
-                const SizedBox(width: 10),
-                CircleAvatar(
-                  radius: 15,
-                  child: Text(senderName[0]),
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  String _formatTime(DateTime dateTime) {
-    final String hour = dateTime.hour.toString().padLeft(2, '0');
-    final String minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
   }
 }

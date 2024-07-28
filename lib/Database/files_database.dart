@@ -69,9 +69,19 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> maps = await db.query('video_files');
     return List.generate(maps.length, (index) {
       return VideoFile(
+        id: maps[index]['id'],
           path: maps[index]['path'],
           dateTime: maps[index]['dateTime']
       );
     });
+  }
+
+  Future<void> deleteVideoFile(int id) async {
+    final db = await database;
+    await db.delete(
+      'video_files',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }

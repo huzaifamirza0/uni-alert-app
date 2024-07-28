@@ -25,7 +25,7 @@ class _MessageDialogState extends State<MessageDialog> {
     if (currentUser != null) {
       String userId = currentUser.uid;
       DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-      return userSnapshot['name'];
+      return userSnapshot['displayName'];
     }
     return 'Unknown';
   }

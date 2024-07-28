@@ -117,7 +117,7 @@ class NavBar extends StatelessWidget {
           },
           backgroundColor: Colors.lightGreen,
           shape: const CircleBorder(),
-          child: Icon(Icons.add, size: fabHeight * 0.6),
+          child: Icon(Icons.message, color: Colors.white, size: fabHeight * 0.5),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

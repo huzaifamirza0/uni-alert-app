@@ -13,7 +13,7 @@ class User {
   final String? departmentCode;
   final String? deviceToken;
   final String? role;
-  final String? status;
+  final Timestamp dateofJoin;
 
   const User({
     required this.uid,
@@ -28,7 +28,7 @@ class User {
     this.departmentCode,
     this.deviceToken,
     this.role,
-    this.status,
+    required this.dateofJoin
   });
 
   factory User.fromFirestore(DocumentSnapshot doc) {
@@ -46,7 +46,7 @@ class User {
       departmentCode: data['departmentCode'],
       deviceToken: data['deviceToken'],
       role: data['role'],
-      status: data['status'],
+      dateofJoin: data['dateofJoin'],
       phone: data['contact'],
     );
   }
@@ -63,7 +63,7 @@ class User {
       'departmentCode': departmentCode,
       'deviceToken': deviceToken,
       'role': role,
-      'status': status,
+      'dateofJoin': dateofJoin,
       'contact': phone,
     };
   }

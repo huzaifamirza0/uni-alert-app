@@ -39,7 +39,7 @@ class UserDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16.0),
                     Text(
-                      userData['name'] ?? 'N/A',
+                      userData['displayName'] ?? 'N/A',
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     Text(

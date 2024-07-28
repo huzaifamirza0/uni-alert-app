@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:notification_app/Screens/Auth/role_select.dart';
 import 'package:notification_app/Services/notification_services.dart';
 import '../../../Components/auth_button.dart';

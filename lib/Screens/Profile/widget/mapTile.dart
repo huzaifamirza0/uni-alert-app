@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocode/geocode.dart';
+import 'package:geolocator/geolocator.dart';
 
 class LocationWidget extends StatefulWidget {
   final double latitude;
@@ -16,35 +17,81 @@ class LocationWidget extends StatefulWidget {
 
 class _LocationWidgetState extends State<LocationWidget> {
   String? _address;
+  double? _latitude;
+  double? _longitude;
   final GeoCode geoCode = GeoCode();
 
   @override
   void initState() {
     super.initState();
+    _initializeLocation();
+  }
+
+  Future<void> _initializeLocation() async {
+    if (widget.latitude != 0 && widget.longitude != 0) {
+      _latitude = widget.latitude;
+      _longitude = widget.longitude;
+    } else {
+      await _getCurrentLocation();
+    }
+
     _getAddress();
   }
 
   Future<void> _getAddress() async {
-    try {
-      Address address = await geoCode.reverseGeocoding(
-        latitude: widget.latitude,
-        longitude: widget.longitude,
-      );
-      setState(() {
-        _address = "${address.streetAddress}, ${address.city}, ${address.countryName}";
-      });
-    } catch (e) {
-      setState(() {
-        _address = "Unable to get address";
-      });
+    if (_latitude != null && _longitude != null) {
+      try {
+        Address address = await geoCode.reverseGeocoding(
+          latitude: _latitude!,
+          longitude: _longitude!,
+        );
+        setState(() {
+          _address = "${address.streetAddress}, ${address.city}, ${address.countryName}";
+        });
+      } catch (e) {
+        setState(() {
+          _address = "Unable to get address";
+        });
+      }
     }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      _latitude = position.latitude;
+      _longitude = position.longitude;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 16),
-      padding: EdgeInsets.symmetric(horizontal: 54, vertical: 12),
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 54, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -52,8 +99,8 @@ class _LocationWidgetState extends State<LocationWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
             child: Text(
               'My Location',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -65,16 +112,16 @@ class _LocationWidgetState extends State<LocationWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Address:',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(_address ?? 'Loading...'),
                   ],
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               Expanded(
                 child: Container(
                   height: 150,
@@ -82,7 +129,10 @@ class _LocationWidgetState extends State<LocationWidget> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey), // Add border to mimic an image
                   ),
-                  child: GoogleMapTile(latitude: widget.latitude, longitude: widget.longitude),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12), // Adjust the radius as needed
+                    child: GoogleMapTile(latitude: _latitude ?? 0, longitude: _longitude ?? 0),
+                  ),
                 ),
               ),
             ],
@@ -108,9 +158,9 @@ class GoogleMapTile extends StatelessWidget {
       ),
       markers: {
         Marker(
-          markerId: MarkerId('location'),
+          markerId: const MarkerId('location'),
           position: LatLng(latitude, longitude),
-          infoWindow: InfoWindow(title: 'Location'),
+          infoWindow: const InfoWindow(title: 'Location'),
         ),
       },
       gestureRecognizers: Set()..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),

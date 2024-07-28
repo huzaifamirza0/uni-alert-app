@@ -35,7 +35,9 @@ class AuthService {
       bool emergency,
       double latitude,
       double longitude,
-      NotificationServices notificationServices, {
+      NotificationServices notificationServices,
+      Timestamp dateofJoin,
+      {
         String? rollNo,
         String? contact,
       }) async {
@@ -75,12 +77,13 @@ class AuthService {
           'uid': user.uid,
           'email': user.email,
           'displayName': user.displayName,
-          'photoUrl': user.photoURL,
+          'picture': user.photoURL,
           'role': role.toString().split('.').last,
           'deviceToken': deviceToken,
           'emergency': emergency,
           'latitude': latitude,
           'longitude': longitude,
+          'dateofJoin': dateofJoin
         };
 
         if (rollNo != null) {

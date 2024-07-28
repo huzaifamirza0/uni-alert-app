@@ -229,10 +229,10 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
           }
 
           String role = userData['role'];
-          print("User role: $role"); // Debugging print to check user role
+          print("User role: $role");
 
           if (role == 'hod') {
-            return _buildHODView(context, userId, role);
+            return _buildHODView(context, userId, role, userData);
           } else if (role == 'student') {
             return _buildStudentView(context, userId, role);
           } else if (role == 'faculty') {
@@ -247,7 +247,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
     );
   }
 
-  Widget _buildHODView(BuildContext context, String userId, String role) {
+  Widget _buildHODView(BuildContext context, String userId, String role, Map<String, dynamic>? userData) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('departments').where('hodId', isEqualTo: userId).snapshots(),
       builder: (context, snapshot) {
@@ -257,6 +257,10 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
+        List<String>? subscribedAdminOffices;
+        if (userData != null && userData.containsKey('subscribedAdminOffices')) {
+          subscribedAdminOffices = List<String>.from(userData['subscribedAdminOffices']);
         }
 
         if (snapshot.data?.docs.isEmpty ?? true) {
@@ -283,6 +287,8 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                     borderColor: Colors.transparent,
                     iconColor: Colors.white,
                   ),
+                  SizedBox(height: 12,),
+                  SubscribedAdminOfficesWidget(subscribedAdminOffices: subscribedAdminOffices,)
                 ],
               ),
             ),
@@ -378,6 +384,8 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                   borderColor: Colors.transparent,
                   iconColor: Colors.white,
                 ),
+                SizedBox(height: 12,),
+                SubscribedAdminOfficesWidget(subscribedAdminOffices: subscribedAdminOffices,)
               ],
             );
           },
@@ -405,6 +413,10 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
         }
 
         String departmentCode = userData['departmentCode'] ?? '';
+        List<String>? subscribedAdminOffices;
+        if (userData != null && userData.containsKey('subscribedAdminOffices')) {
+          subscribedAdminOffices = List<String>.from(userData['subscribedAdminOffices']);
+        }
 
         if (departmentCode.isEmpty) {
           return Center(
@@ -430,6 +442,8 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                     textColor: Colors.white,
                     iconColor: Colors.white,
                   ),
+                  SizedBox(height: 12,),
+                  SubscribedAdminOfficesWidget(subscribedAdminOffices: subscribedAdminOffices,)
                 ],
               ),
             ),
@@ -566,6 +580,8 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                               borderColor: Colors.transparent,
                               iconColor: Colors.white,
                             ),
+                            SizedBox(height: 12,),
+                            SubscribedAdminOfficesWidget(subscribedAdminOffices: subscribedAdminOffices,)
                           ],
                         );
                       },
@@ -598,6 +614,11 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
           return const Center(child: Text('User data is null'));
         }
 
+        List<String>? subscribedAdminOffices;
+        if (userData != null && userData.containsKey('subscribedAdminOffices')) {
+          subscribedAdminOffices = List<String>.from(userData['subscribedAdminOffices']);
+        }
+
         var departmentCodesRaw = userData['departmentCode'];
         List<String> departmentCodes;
         if (departmentCodesRaw is String) {
@@ -605,7 +626,29 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
         } else if (departmentCodesRaw is List) {
           departmentCodes = List<String>.from(departmentCodesRaw);
         } else {
-          return const Center(child: Text('Invalid data format for departmentCode'));
+          // No department code available
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('You have not joined any department yet.'),
+                const SizedBox(height: 20),
+                AuthButton(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => JoinDepartmentScreen()));
+                  },
+                  text: 'Join Department',
+                  color: Colors.lightGreen,
+                  icon: Icons.add,
+                  borderColor: Colors.transparent,
+                  textColor: Colors.white,
+                  iconColor: Colors.white,
+                ),
+                SizedBox(height: 12,),
+                SubscribedAdminOfficesWidget(subscribedAdminOffices: subscribedAdminOffices,)
+              ],
+            ),
+          );
         }
 
         return ListView.builder(
@@ -649,6 +692,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                 }
 
                 var department = snapshot.data!.docs.first;
+
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -725,7 +769,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                               const SizedBox(height: 16,),
                               AuthButton(
                                 onPressed: () => Get.to(DepartmentChatRoom(departmentId: department.id,
-                                    departmentName: department['name'], userRole: role,)),
+                                  departmentName: department['name'], userRole: role,)),
                                 icon: Icons.chat,
                                 text: 'Open Chat',
                                 textColor: Colors.white,
@@ -733,10 +777,13 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
                                 borderColor: Colors.transparent,
                                 iconColor: Colors.white,
                               ),
+                              SizedBox(height: 12,),
+                              SubscribedAdminOfficesWidget(subscribedAdminOffices: subscribedAdminOffices,)
                             ],
                           );
                         },
                       ),
+
                     ],
                   ),
                 );
@@ -747,6 +794,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
       },
     );
   }
+
 
   Widget _buildAdminOfficeView(BuildContext context, String userId, String role) {
     return StreamBuilder<QuerySnapshot>(
@@ -848,4 +896,57 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
     );
   }
 
+
+}
+
+class SubscribedAdminOfficesWidget extends StatelessWidget {
+  final List<String>? subscribedAdminOffices;
+
+  const SubscribedAdminOfficesWidget({Key? key, this.subscribedAdminOffices}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (subscribedAdminOffices == null || subscribedAdminOffices!.isEmpty) {
+      return const Text('No office subscribed');
+    }
+
+    return Column(
+      children: subscribedAdminOffices!.map((officeId) {
+        return FutureBuilder<DocumentSnapshot>(
+          future: FirebaseFirestore.instance.collection('adminOffices').doc(officeId).get(),
+          builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            }
+
+            var officeData = snapshot.data?.data() as Map<String, dynamic>?;
+            if (officeData == null) {
+              return const Text('Office data is null');
+            }
+
+            return GestureDetector(
+              onTap: (){
+                Get.to(AdminOfficeChatRoom(adminOfficeId: officeId, adminOfficeName: officeData['name']));
+              },
+              child: AdminOfficeView(
+                adminOffice: AdminOffice(
+                  name: officeData['name'] ?? '',
+                  userCount: officeData['userCount'] ?? 0,
+                  description: officeData['description'] ?? '',
+                  creationDate: officeData['creationDate'] != null
+                      ? (officeData['creationDate'] as Timestamp).toDate().toString()
+                      : '',
+                  picture: officeData['picture'] ?? '',
+                ),
+              ),
+            );
+          },
+        );
+      }).toList(),
+    );
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../model/user.dart';
 import '../widget/mapTile.dart';
 import '../widget/profile_items.dart';
@@ -48,6 +49,8 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         } else {
           final user = snapshot.data!;
+          DateTime dateTime = user.dateofJoin.toDate();
+          String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(dateTime);
 
           return Scaffold(
             appBar: buildAppBar(context),
@@ -66,11 +69,65 @@ class _ProfilePageState extends State<ProfilePage> {
                 buildName(user),
                 const SizedBox(height: 24),
                 const SizedBox(height: 24),
-                NumbersWidget(),
-                const SizedBox(height: 24),
+              Center(
+                child: Builder(
+                  builder: (context) {
+                    String roleText;
+                    TextStyle textStyle;
+
+                    switch (user.role) {
+                      case 'adminOfficer':
+                        roleText = 'Admin Officer';
+                        textStyle = const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        );
+                        break;
+                      case 'hod':
+                        roleText = 'Head of Department';
+                        textStyle = const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        );
+                        break;
+                      case 'faculty':
+                        roleText = 'Faculty';
+                        textStyle = const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        );
+                        break;
+                      case 'student':
+                        roleText = 'Student';
+                        textStyle = const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        );
+                        break;
+                      default:
+                        roleText = 'N/A';
+                        textStyle = const TextStyle(fontSize: 14);
+                        break;
+                    }
+
+                    return Text(
+                      roleText,
+                      style: textStyle,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
                 GestureDetector(
                   onTap: () {
-                    // Navigation to map or location view can be added here
+                    print(user.dateofJoin.toString());
                   },
                   child: LocationWidget(latitude: user.latitude, longitude: user.longitude),
                 ),
@@ -97,11 +154,6 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               SizedBox(height: 10),
                               Text(
-                                'Batch:',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                              SizedBox(height: 10),
-                              Text(
                                 'Date of Joining:',
                                 style: TextStyle(color: Colors.grey),
                               ),
@@ -119,19 +171,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  user.departmentCode?? '',
+                                  user.departmentCode?? '(Join Department)',
                                   style: const TextStyle(fontSize: 14),
                                   overflow: TextOverflow.ellipsis,
                                 ),
+
                                 const SizedBox(height: 10),
                                 Text(
-                                  user.role ?? 'N/A',
-                                  style: const TextStyle(fontSize: 14),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  user.status ?? 'N/A',
+                                  formattedDate,
                                   style: const TextStyle(fontSize: 14),
                                 ),
                               ],

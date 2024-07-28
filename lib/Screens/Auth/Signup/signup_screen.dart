@@ -1,3 +1,4 @@
+import 'package:cloud_firestore_platform_interface/src/timestamp.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -77,6 +78,7 @@ class SignUpScreen extends StatelessWidget {
                     0.0,
                     0.0,
                     NotificationServices(),
+                    Timestamp.fromDate(DateTime.now()),
                   );
                   if (user != null) {
                     Get.offAll(NavBar());

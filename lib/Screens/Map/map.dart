@@ -29,7 +29,7 @@ class _GoMapState extends State<GoMap> {
   late GoogleMapController mapController;
   List<Marker> allMarkers = [];
   late LocationService _locationService;
-  late double radius = 900.0;
+  late double radius = 3000.0;
   bool _showCheckInButton = false;
   List<Circle> _circles = [];
   String? _latitude;
@@ -103,7 +103,7 @@ class _GoMapState extends State<GoMap> {
     final userId  = await FirebaseAuth.instance.currentUser!.uid;
     await FirebaseFirestore.instance.collection('users').doc(userId).update(
         {
-          'status': status
+          'emergency': status
         });
   }
 
@@ -113,13 +113,10 @@ class _GoMapState extends State<GoMap> {
     List<Marker> markers = [];
     List<Circle> circles = [];
     final currentUserId = await FirebaseAuth.instance.currentUser!.uid;
-    print('currentUserId : -------- $currentUserId');
     print(querySnapshot.docs);
     querySnapshot.docs.forEach((doc) {
-      print('Doc');
-      print(doc.data());
       String userId = doc.id;
-      String name = doc['name'];
+      String name = doc['displayName'];
       double lat = doc['latitude'];
       double lng = doc['longitude'];
       //double radius = double.parse(doc['radius']);
@@ -133,7 +130,7 @@ class _GoMapState extends State<GoMap> {
           Circle(
             circleId: CircleId(userId),
             center: LatLng(lat, lng),
-            radius: 900,
+            radius: radius,
             strokeWidth: 2,
             strokeColor: Colors.red,
             fillColor: Colors.red.withOpacity(0.1),
@@ -393,7 +390,7 @@ class _GoMapState extends State<GoMap> {
                                         _popupEmergencyUsers(context);
                                       },
                                       title: Text(
-                                        user['name'] ?? '',
+                                        user['displayName'] ?? '',
                                         style: const TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                       subtitle: Text(
@@ -468,6 +465,7 @@ class _GoMapState extends State<GoMap> {
       dbHelper.insertVideoFile(VideoFile(
         path: video.path,
         dateTime: dateTime.toString(),
+        id: 0,
       ));
       _controller.dispose();
       print('Video recorded: ${video.path}');

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:notification_app/Screens/home/select_user_for_chat.dart';
 
 import '../Profile/model/user.dart';
 import '../Profile/utils/user_preferences.dart';
@@ -86,10 +88,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     ),
                   const Divider(),
                   ListTile(
+                    leading: const Icon(Icons.supervised_user_circle),
+                    title: const Text('Users'),
+                    onTap: (){
+                      Get.to(UserSearchScreen());
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
                     leading: const Icon(Icons.logout),
                     title: const Text('Logout'),
                     onTap: widget.onLogout,
                   ),
+
                 ],
               ),
             );

@@ -31,7 +31,7 @@ class _JoinDepartmentScreenState extends State<JoinDepartmentScreen> {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       setState(() {
         userRole = userDoc['role'];
-        userDepartments = userDoc['departments'] ?? [];
+        userDepartments = userDoc['departmentCode'] ?? [];
       });
     }
   }

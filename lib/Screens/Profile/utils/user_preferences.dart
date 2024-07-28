@@ -21,8 +21,8 @@ class UserPreferences {
     // Create a User object using the data from Firestore
     final user = ProfileUser.User(
       uid: userId,
-      name: userData['name'] ?? 'Unknown',
-      email: userData['email'] ?? 'unknown@example.com',
+      name: userData['displayName'] ?? 'Unknown',
+      email: userData['email'],
       about: userData['about'] ?? 'No about information provided',
       imagePath: userData['picture'],
       emergency: userData['emergency'] ?? false,
@@ -31,7 +31,7 @@ class UserPreferences {
       departmentCode: userData['departmentCode'],
       deviceToken: userData['deviceToken'],
       role: userData['role'],
-      status: userData['status'],
+      dateofJoin: userData['dateofJoin'],
       phone: userData['contact']?? 'phone',
     );
     return user;

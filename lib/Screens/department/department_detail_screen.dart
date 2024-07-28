@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:notification_app/Screens/user/user_detail_screen.dart';
 
+import '../../Components/auth_button.dart';
 import '../../Components/header_simple.dart';
 
 class DepartmentDetailScreen extends StatelessWidget {
@@ -92,7 +94,7 @@ class DepartmentDetailScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: Colors.lightGreen.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(16),
-          ),
+                              ),
                               child: Column(
                                 children: [
                                   Text(
@@ -114,7 +116,7 @@ class DepartmentDetailScreen extends StatelessWidget {
                                         return const Text('HOD: Loading...');
                                       }
                                       var hod = hodSnapshot.data!;
-                                      return Row(
+                                      return Column(
                                         children: [
                                           const Text(
                                             'Head of Department',
@@ -122,11 +124,11 @@ class DepartmentDetailScreen extends StatelessWidget {
                                               fontSize: 16,
                                             ),
                                           ),
-                                          Spacer(),
+                                          SizedBox(height: 10,),
                                           Text(
-                                            '${hod['name'] ?? 'N/A'}',
+                                            '${hod['displayName'] ?? 'N/A'}',
                                             style: const TextStyle(
-                                              fontSize: 20, fontWeight: FontWeight.bold
+                                                fontSize: 20, fontWeight: FontWeight.bold
                                             ),
                                           ),
                                         ],
@@ -248,10 +250,21 @@ class DepartmentDetailScreen extends StatelessWidget {
                                         leading: CircleAvatar(
                                           backgroundImage: NetworkImage(user['picture'] ?? 'https://via.placeholder.com/150'),
                                         ),
-                                        title: Text(user['name'] ?? 'User Name', style: const TextStyle()),
+                                        title: Text(user['displayName'] ?? 'User Name', style: const TextStyle()),
                                         subtitle: Text(user['email'] ?? 'user@example.com', style: const TextStyle()),
                                       );
                                     }).toList(),
+                                  ),
+                                  AuthButton(
+                                    onPressed: () {
+                                      _deleteDepartment(context, departmentId, userSnapshot);
+                                    },
+                                    icon: Icons.delete,
+                                    text: 'Delete Department',
+                                    textColor: Colors.white,
+                                    color: Colors.red,
+                                    borderColor: Colors.transparent,
+                                    iconColor: Colors.white,
                                   ),
                                 ],
                               );
@@ -268,5 +281,72 @@ class DepartmentDetailScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<void> _deleteDepartment(BuildContext context, String departmentId, AsyncSnapshot<QuerySnapshot> userSnapshot) async {
+    DocumentSnapshot departmentDoc = await FirebaseFirestore.instance.collection('departments').doc(departmentId).get();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+
+    if (departmentDoc['hodId'] == _auth.currentUser!.uid) {
+      bool? confirmDelete = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Confirm Deletion'),
+            content: Text('Are you sure you want to delete this department?'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
+              TextButton(
+                child: Text('Delete'),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirmDelete == true) {
+        try {
+          // Delete the department document
+          await FirebaseFirestore.instance.collection('departments').doc(departmentId).delete();
+
+          // Remove the departmentCode field from all users in this department
+          List<Future<void>> updateOperations = [];
+
+          userSnapshot.data!.docs.forEach((userDoc) {
+            updateOperations.add(userDoc.reference.update({'departmentCode': FieldValue.delete()}));
+          });
+
+          await Future.wait(updateOperations);
+
+          Get.snackbar('Success', 'Department deleted successfully',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+
+          Navigator.of(context).pop();
+        } catch (e) {
+          Get.snackbar('Error', 'Failed to delete department: $e',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
+      }
+    } else {
+      Get.snackbar('Error', 'You are not authorized to delete this department',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 }

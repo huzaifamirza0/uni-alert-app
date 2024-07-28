@@ -9,7 +9,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-
 import 'eventImage_widget.dart';
 
 class EventDialog extends StatefulWidget {
@@ -163,10 +162,7 @@ class _EventDialogState extends State<EventDialog> {
                 decoration: const InputDecoration(
                   labelText: 'Event Name',
                   border: OutlineInputBorder(),
-                  labelStyle: TextStyle(color: Colors.green),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.green),
-                  ),
+                  focusedBorder: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -181,10 +177,7 @@ class _EventDialogState extends State<EventDialog> {
                 decoration: const InputDecoration(
                   labelText: 'Event Description',
                   border: OutlineInputBorder(),
-                  labelStyle: TextStyle(color: Colors.green),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.green),
-                  ),
+                  focusedBorder: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -199,10 +192,7 @@ class _EventDialogState extends State<EventDialog> {
                 decoration: const InputDecoration(
                   labelText: 'Event Date (YYYY-MM-DD)',
                   border: OutlineInputBorder(),
-                  labelStyle: TextStyle(color: Colors.green),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.green),
-                  ),
+                  focusedBorder: OutlineInputBorder(),
                 ),
                 onTap: () async {
                   // Prevents the keyboard from showing up
@@ -230,7 +220,7 @@ class _EventDialogState extends State<EventDialog> {
         ElevatedButton(
           onPressed: _createEvent,
           style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-          child: const Text('Create'),
+          child: const Text('Create', style: TextStyle(color: Colors.white),),
         ),
       ],
     );
