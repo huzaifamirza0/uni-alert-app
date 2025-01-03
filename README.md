@@ -30,45 +30,9 @@ Secure Storage: Emergency video recordings are stored locally with strict privac
 Frontend: Flutter for a smooth and responsive user experience.
 Backend: Firebase and Firestore for reliable data storage and real-time updates.
 State Management: GetX for efficient state management and seamless navigation.
-Getting Started 🚀
-Prerequisites
-Flutter SDK
-Firebase Account
-Installation
-Clone the Repository:
-
-bash
-Copy code
-git clone https://github.com/yourusername/unialert.git
-Navigate to the Project Directory:
-
-bash
-Copy code
-cd unialert
-Install Dependencies:
-
-bash
-Copy code
-flutter pub get
-Set Up Firebase:
-
-Follow the instructions to add Firebase to your Flutter project.
-Replace the existing google-services.json and GoogleService-Info.plist files with your own.
-Run the App:
-
-bash
-Copy code
-flutter run
-Contributing 🤝
-We welcome contributions to enhance UniAlert. Please read our contributing guidelines for more details.
-
-License 📄
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 Acknowledgements 🙏
 Special thanks to Sir Zaeem Nazir and the faculty and administrative officers at the University of Narowal for their invaluable insights and support. Kudos to the entire project team for their dedication and hard work in bringing UniAlert to life.
 
 Team Members 👥
-Muhammad Huzaifa: Lead Developer
-Muhammad Hanzla: UI/UX Designer
-Zubair Ahmad: Tester and Analyst
+Muhammad Huzaifa: Developer, Designer, Tester
